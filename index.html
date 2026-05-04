@@ -2006,6 +2006,15 @@ function excluirArea(id) {
   }
 })();
 
+
+// ===================== FORÇA LOGIN =====================
+window.addEventListener('DOMContentLoaded', function() {
+  usuarioAtual = null;
+  var t = document.getElementById('tela-login');
+  var a = document.getElementById('app');
+  if (t) t.style.display = 'flex';
+  if (a) a.style.display = 'none';
+});
 // Fechar modal clicando fora
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', function(e) { if(e.target===this) fecharModal(this.id); });
