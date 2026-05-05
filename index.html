@@ -687,11 +687,29 @@ tbody td { padding: 12px 16px; font-size: 13px; }
 .aviso-box.warning { background: var(--amarelo-light); border-left: 3px solid var(--amarelo); color: #856404; }
 </style>
 <script src="https://smtpjs.com/v3/smtp.js"></script><script>window._smtpConfig={Host:"smtp.office365.com",Username:"helpdesck@terradobrasil.com.br",Password:"Agrob@2026",Port:587,From:"helpdesck@terradobrasil.com.br"};</script>
-</head>
+<style>
+.anexos-area{border:2px dashed #ccc;border-radius:8px;padding:16px;text-align:center;cursor:pointer;margin-top:8px;position:relative;transition:border-color .2s,background .2s}
+.anexos-area:hover{border-color:#1A5C2A;background:#f0f8f0}
+.anexos-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.anexos-area .icon{font-size:28px;margin-bottom:4px}
+.anexos-area .txt{font-size:12px;color:#888}
+.anexos-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.anexo-thumb{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid #ddd;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.anexo-thumb img,.anexo-thumb video{width:100%;height:100%;object-fit:cover}
+.anexo-thumb .anexo-nome{font-size:9px;color:#666;text-align:center;padding:4px;word-break:break-all}
+.remove-anexo{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#e74c3c;color:white;font-size:11px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.msg-anexos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.msg-anexo{border-radius:6px;overflow:hidden;border:1px solid #ddd;cursor:pointer;max-width:200px}
+.msg-anexo img,.msg-anexo video{max-width:200px;max-height:150px;display:block;object-fit:cover}
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox.open{display:flex}
+.lightbox img,.lightbox video{max-width:90vw;max-height:90vh;border-radius:8px}
+.lightbox-close{position:absolute;top:20px;right:24px;color:white;font-size:32px;cursor:pointer;background:none;border:none;font-weight:700}
+</style></head>
 <body>
 
 <!-- ===== LOGIN ===== -->
-<div id="tela-login" style="display: flex;"><div id="tela-login-overlay"></div>
+<div id="tela-login" style="display: none;"><div id="tela-login-overlay"></div>
   <div class="login-card">
     <div class="login-logo">
       <img src="data:image/png;base64,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" alt="AgroBrasil" style="height:56px;object-fit:contain;mix-blend-mode:multiply;filter:contrast(1.05);">
@@ -713,7 +731,7 @@ tbody td { padding: 12px 16px; font-size: 13px; }
 </div>
 
 <!-- ===== APP ===== -->
-<div id="app" style="display: none;">
+<div id="app" style="display: flex;">
 
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
@@ -730,21 +748,21 @@ tbody td { padding: 12px 16px; font-size: 13px; }
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">Principal</div>
-      <div class="nav-item active" onclick="irPara('dashboard')" id="nav-dashboard">
+      <div class="nav-item" onclick="irPara('dashboard')" id="nav-dashboard">
         <span class="icon">📊</span> Dashboard
       </div>
       <div class="nav-item" onclick="irPara('meus-chamados')" id="nav-meus-chamados">
         <span class="icon">🎫</span> Meus Chamados
-        <span class="badge" id="badge-meus" style="display:none">0</span>
+        <span class="badge" id="badge-meus" style="">3</span>
       </div>
-      <div class="nav-item" onclick="irPara('novo-chamado')" id="nav-novo-chamado">
+      <div class="nav-item active" onclick="irPara('novo-chamado')" id="nav-novo-chamado">
         <span class="icon">➕</span> Novo Chamado
       </div>
 
       <div class="nav-section" id="nav-section-admin" style="">Administração</div>
       <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" style="display: flex;">
         <span class="icon">📋</span> Todos os Chamados
-        <span class="badge" id="badge-todos" style="display:none">0</span>
+        <span class="badge" id="badge-todos" style="">3</span>
       </div>
       <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios" style="display: flex;">
         <span class="icon">📈</span> Relatórios
@@ -767,8 +785,8 @@ tbody td { padding: 12px 16px; font-size: 13px; }
   <div class="main-content">
     <div class="topbar">
       <div class="topbar-left">
-        <h2 id="page-title">Dashboard</h2>
-        <div class="breadcrumb" id="page-breadcrumb">AgroBrasil › Visão geral dos chamados</div>
+        <h2 id="page-title">Novo Chamado</h2>
+        <div class="breadcrumb" id="page-breadcrumb">AgroBrasil › Abrir uma nova solicitação</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
         <button class="btn btn-primary btn-sm" onclick="irPara('novo-chamado')">➕ Novo Chamado</button>
@@ -778,17 +796,17 @@ tbody td { padding: 12px 16px; font-size: 13px; }
     <div class="page-body">
 
       <!-- ===== DASHBOARD ===== -->
-      <div id="page-dashboard" class="tab-content active">
+      <div id="page-dashboard" class="tab-content">
         <div class="cards-grid" id="dash-cards">
     <div class="stat-card ">
       <div class="label">Total de Chamados</div>
-      <div class="value">0</div>
+      <div class="value">3</div>
       <div class="sub">No sistema</div>
     </div>
   
     <div class="stat-card amarelo">
       <div class="label">Abertos</div>
-      <div class="value">0</div>
+      <div class="value">3</div>
       <div class="sub">Aguardando atendimento</div>
     </div>
   
@@ -825,7 +843,40 @@ tbody td { padding: 12px 16px; font-size: 13px; }
             <thead><tr>
               <th>Nº</th><th>Assunto</th><th>Setor</th><th>Área</th><th>Prioridade</th><th>Status</th><th>Aberto por</th><th>Data</th>
             </tr></thead>
-            <tbody id="dash-tabela"><tr><td colspan="8"><div class="empty-state"><div class="icon">🎫</div><h3>Nenhum chamado ainda</h3><p>Clique em "Novo Chamado" para abrir o primeiro.</p></div></td></tr></tbody>
+            <tbody id="dash-tabela">
+    <tr onclick="abrirTicket('moryxd83az5pz')">
+      <td><span class="ticket-num">#0002</span></td>
+      <td>testestestes</td>
+      <td>Tecnologia da Informação</td>
+      <td>Impressora</td>
+      <td><span class="badge badge-media">🟡 Média</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>Warley Fernandes Tavares</td>
+      <td>04/05/2026</td>
+    </tr>
+  
+    <tr onclick="abrirTicket('morylte4safxy')">
+      <td><span class="ticket-num">#0002</span></td>
+      <td>Teste v3 - auto-assign e email</td>
+      <td>Tecnologia da Informação</td>
+      <td>Sistema / ERP</td>
+      <td><span class="badge badge-alta">🟠 Alta</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>Warley Fernandes Tavares</td>
+      <td>04/05/2026</td>
+    </tr>
+  
+    <tr onclick="abrirTicket('morxcjdkyhuni')">
+      <td><span class="ticket-num">#0001</span></td>
+      <td>teste de email</td>
+      <td>Tecnologia da Informação</td>
+      <td>Impressora</td>
+      <td><span class="badge badge-media">🟡 Média</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>Warley Fernandes Tavares</td>
+      <td>04/05/2026</td>
+    </tr>
+  </tbody>
           </table>
         </div>
       </div>
@@ -850,13 +901,46 @@ tbody td { padding: 12px 16px; font-size: 13px; }
             <thead><tr>
               <th>Nº</th><th>Assunto</th><th>Setor</th><th>Área</th><th>Prioridade</th><th>Status</th><th>Atualizado</th><th>Ações</th>
             </tr></thead>
-            <tbody id="meus-tabela"></tbody>
+            <tbody id="meus-tabela">
+    <tr onclick="abrirTicket('moryxd83az5pz')">
+      <td><span class="ticket-num">#0002</span></td>
+      <td>testestestes</td>
+      <td>Tecnologia da Informação</td>
+      <td>Impressora</td>
+      <td><span class="badge badge-media">🟡 Média</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>04/05/2026 22:47</td>
+      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('moryxd83az5pz')">Ver →</button></td>
+    </tr>
+  
+    <tr onclick="abrirTicket('morylte4safxy')">
+      <td><span class="ticket-num">#0002</span></td>
+      <td>Teste v3 - auto-assign e email</td>
+      <td>Tecnologia da Informação</td>
+      <td>Sistema / ERP</td>
+      <td><span class="badge badge-alta">🟠 Alta</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>04/05/2026 22:38</td>
+      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('morylte4safxy')">Ver →</button></td>
+    </tr>
+  
+    <tr onclick="abrirTicket('morxcjdkyhuni')">
+      <td><span class="ticket-num">#0001</span></td>
+      <td>teste de email</td>
+      <td>Tecnologia da Informação</td>
+      <td>Impressora</td>
+      <td><span class="badge badge-media">🟡 Média</span></td>
+      <td><span class="badge badge-aberto">Aberto</span></td>
+      <td>04/05/2026 22:03</td>
+      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('morxcjdkyhuni')">Ver →</button></td>
+    </tr>
+  </tbody>
           </table>
         </div>
       </div>
 
       <!-- ===== NOVO CHAMADO ===== -->
-      <div id="page-novo-chamado" class="tab-content">
+      <div id="page-novo-chamado" class="tab-content active">
         <div class="table-card">
           <div class="modal-header" style="border-radius:var(--radius) var(--radius) 0 0;position:relative">
             <h3>➕ Abrir Novo Chamado</h3>
@@ -869,15 +953,11 @@ tbody td { padding: 12px 16px; font-size: 13px; }
             <div class="form-row">
               <div class="form-group">
                 <label>Setor Destinatário *</label>
-                <select id="nc-setor" onchange="carregarAreasNC()">
-                  <option value="">Selecione o setor...</option>
-                </select>
+                <select id="nc-setor" onchange="carregarAreasNC()"><option value="">Selecione o setor...</option><option value="s1">Tecnologia da Informação</option><option value="s2">Recursos Humanos</option><option value="s3">Financeiro</option><option value="s4">Comercial</option><option value="s5">Contábil</option><option value="s6">Fiscal</option><option value="s7">Logística</option><option value="s8">Estoque</option><option value="s9">Faturamento</option><option value="s10">Diretoria</option><option value="morxbwudbt63u">Marketing</option></select>
               </div>
               <div class="form-group">
                 <label>Área / Categoria *</label>
-                <select id="nc-area">
-                  <option value="">Selecione a área...</option>
-                </select>
+                <select id="nc-area"><option value="">Selecione o setor primeiro...</option></select>
               </div>
             </div>
             <div class="form-group">
@@ -903,7 +983,14 @@ tbody td { padding: 12px 16px; font-size: 13px; }
                 <input type="text" id="nc-ramal" placeholder="Ex: 3001 ou (61) 99999-9999">
               </div>
             </div>
-            <button class="btn btn-primary" onclick="abrirChamado()" style="margin-top:8px">
+            <div class="form-group" style="margin-top: 8px;">
+    <label>📎 Anexos — Fotos, prints de tela ou vídeos (opcional)</label>
+    <div class="anexos-area" id="nc-anexos-area">
+      <input type="file" id="nc-arquivos" multiple="" accept="image/*,video/*,.pdf" onchange="previewAnexosNC()">
+      <div class="icon">📷</div>
+      <div class="txt">Clique ou arraste aqui<br><strong>Fotos, prints, vídeos ou PDF</strong> · Máx 10MB por arquivo</div>
+    </div>
+    <div class="anexos-preview" id="nc-preview"></div></div><button class="btn btn-primary" onclick="abrirChamado()" style="margin-top:8px">
               🎫 Abrir Chamado
             </button>
           </div>
@@ -1051,11 +1138,22 @@ tbody td { padding: 12px 16px; font-size: 13px; }
 <div class="modal-overlay" id="modal-ticket">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <h3 id="modal-ticket-titulo">Chamado #0001</h3>
+      <h3 id="modal-ticket-titulo">#0002 — testestestes</h3>
       <button class="close-btn" onclick="fecharModal('modal-ticket')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="ticket-info-grid" id="ticket-info-grid"></div>
+      <div class="ticket-info-grid" id="ticket-info-grid">
+    <div class="ticket-info-item"><div class="tit">Número</div><div class="val">#0002</div></div>
+    <div class="ticket-info-item"><div class="tit">Status</div><div class="val"><span class="badge badge-aberto">Aberto</span></div></div>
+    <div class="ticket-info-item"><div class="tit">Prioridade</div><div class="val"><span class="badge badge-media">🟡 Média</span></div></div>
+    <div class="ticket-info-item"><div class="tit">Setor</div><div class="val">Tecnologia da Informação</div></div>
+    <div class="ticket-info-item"><div class="tit">Área / Categoria</div><div class="val">Impressora</div></div>
+    <div class="ticket-info-item"><div class="tit">Solicitante</div><div class="val">Warley Fernandes Tavares</div></div>
+    <div class="ticket-info-item"><div class="tit">Atendente</div><div class="val">teste teste</div></div>
+    <div class="ticket-info-item"><div class="tit">Aberto em</div><div class="val">04/05/2026 22:47</div></div>
+    <div class="ticket-info-item"><div class="tit">Última atualização</div><div class="val">04/05/2026 22:47</div></div>
+    
+  </div>
       <div class="form-group" id="ticket-status-box">
         <label>Alterar Status</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1065,20 +1163,32 @@ tbody td { padding: 12px 16px; font-size: 13px; }
           <button class="btn btn-outline btn-sm" onclick="alterarStatus('Cancelado')">❌ Cancelado</button>
         </div>
       </div>
-      <div class="form-group" id="atendente-box" style="display:none">
+      <div class="form-group" id="atendente-box" style="">
         <label>Atribuir Atendente</label>
         <div style="display:flex;gap:8px">
-          <select id="sel-atendente" style="flex:1;padding:8px 12px;border:1.5px solid var(--cinza2);border-radius:8px;font-family:DM Sans,sans-serif;font-size:13px"></select>
+          <select id="sel-atendente" style="flex:1;padding:8px 12px;border:1.5px solid var(--cinza2);border-radius:8px;font-family:DM Sans,sans-serif;font-size:13px"><option value="">Sem atendente</option><option value="u1">Administrador</option><option value="warley_admin_001">Warley Fernandes Tavares</option><option value="morxb1vmnk8a7" selected="">teste teste</option><option value="at_ti">Atendente TI</option><option value="at_rh">Atendente RH</option><option value="at_fin">Atendente FIN</option><option value="at_com">Atendente COM</option><option value="at_log">Atendente LOG</option></select>
           <button class="btn btn-azul btn-sm" onclick="atribuirAtendente()">Atribuir</button>
         </div>
       </div>
       <div class="mensagens">
         <h4>💬 Histórico &amp; Mensagens</h4>
-        <div class="msg-list" id="msg-list"></div>
+        <div class="msg-list" id="msg-list">
+    <div class="msg-item usuario">
+      <div class="msg-meta">Warley Fernandes Tavares · 04/05/2026 22:47</div>
+      <div style="white-space:pre-wrap">✅ Chamado aberto por Warley Fernandes Tavares em 04/05/2026 22:47.
+
+📋 Descrição: dgrfghstfzxfhsdtusd</div>
+    </div>
+  
+    <div class="msg-item usuario">
+      <div class="msg-meta">Warley Fernandes Tavares · 04/05/2026 22:47</div>
+      <div style="white-space:pre-wrap">👤 Chamado atribuído a teste teste por Warley Fernandes Tavares.</div>
+    </div>
+  </div>
         <div class="msg-send">
           <textarea id="nova-msg" placeholder="Digite uma mensagem ou atualização..."></textarea>
-          <button class="btn btn-primary" onclick="enviarMensagem()" style="align-self:flex-end">Enviar</button>
-        </div>
+          <label title="Anexar foto, vídeo ou PDF" style="cursor: pointer; position: relative; display: inline-block;"><input type="file" id="msg-arquivos" multiple="" accept="image/*,video/*,.pdf" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer" onchange="previewAnexosMSG()"><div class="btn btn-outline" style="pointer-events:none;padding:6px 10px;font-size:13px">📎 Anexar</div></label><button class="btn btn-primary" onclick="enviarMensagem()" style="align-self:flex-end">Enviar</button>
+        </div><div class="anexos-preview" id="msg-preview" style="margin-top: 8px;"></div>
       </div>
     </div>
   </div>
@@ -2030,4 +2140,4 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 </script>
 
 
-HTMLEOF</body></html>
+HTMLEOF<div class="lightbox" id="lightbox"><button class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</button><div id="lightbox-content"></div></div></body></html>
