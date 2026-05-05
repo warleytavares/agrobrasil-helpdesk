@@ -1221,8 +1221,7 @@ tbody td { padding: 12px 16px; font-size: 13px; }
         <div class="form-group">
           <label>Perfil *</label>
           <select id="usuario-perfil">
-            <option value="usuario">Usuário (Solicitante)</option>
-            <option value="atendente">Atendente</option>
+            <option value="colaborador">Colaborador</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
@@ -1574,7 +1573,7 @@ function renderMeusChamados() {
   const busca = (document.getElementById('filtro-meus')||{value:''}).value.toLowerCase();
   const status = (document.getElementById('filtro-meus-status')||{value:''}).value;
   const chamados = (DB.get('chamados')||[]).filter(c => {
-    if (c.usuarioId !== usuarioAtual.id) return false;
+    var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'; if(!ok) return false;
     if (status && c.status !== status) return false;
     if (busca && !c.assunto.toLowerCase().includes(busca) && !c.numero.includes(busca)) return false;
     return true;
