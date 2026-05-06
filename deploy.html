@@ -1,2 +1,203 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Deploy HelpDesk</title><style>body{font-family:Arial;max-width:600px;margin:30px auto;padding:20px;background:#f0f0f0}h2{color:#1A5C2A}button{background:#1A5C2A;color:#fff;border:none;padding:12px 24px;font-size:14px;border-radius:6px;cursor:pointer;margin:4px}button:disabled{background:#aaa}#log{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:12px;border-radius:6px;min-height:150px;max-height:380px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}.ok{color:#4fc}.err{color:#f44}.warn{color:#ff0}label{font-weight:bold;display:block;margin-top:10px}input[type=file]{display:block;margin:6px 0;padding:6px;border:2px dashed #ccc;border-radius:5px;width:100%;box-sizing:border-box}input[type=password]{display:block;margin:6px 0;padding:8px;border:1px solid #ccc;border-radius:5px;width:100%;box-sizing:border-box;font-size:13px}</style></head><body><h2>Deploy HelpDesk AgroBrasil</h2><label>Token GitHub:</label><input type="password" id="tk" placeholder="ghp_..."><label>Logo.png:</label><input type="file" id="fL" accept="image/*"><label>Fundo.jpeg:</label><input type="file" id="fF" accept="image/*"><br><button id="btn" onclick="go()">Fazer Deploy</button><button onclick="document.getElementById('log').textContent=''">Limpar</button><div id="log">Pronto.
-</div><script>var U="https://api.github.com/repos/warleytavares/agrobrasil-helpdesk/contents/index.html";var BT="<br>";function lg(m,c){var e=document.getElementById("log"),s=document.createElement("span");if(c)s.className=c;s.textContent=m+"\n";e.appendChild(s);e.scrollTop=e.scrollHeight;}function rb(f){return new Promise(function(r,j){var x=new FileReader();x.onload=function(e){r(e.target.result.split(",")[1]);};x.onerror=j;x.readAsDataURL(f);});}function enc(s){var b=new TextEncoder().encode(s),bin="";for(var i=0;i<b.length;i+=8192)bin+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(bin);}function rpng(h,ns){var r="",rem=h,c=0,mk='src="data:image/png;base64,';while(true){var p=rem.indexOf(mk);if(p===-1){r+=rem;break;}var a=rem.substring(p+mk.length),q=a.indexOf('"');if(q===-1){r+=rem;break;}r+=rem.substring(0,p)+'src="'+ns+'"';rem=a.substring(q+1);c++;}return{h:r,c:c};}async function go(){var T=document.getElementById("tk").value.trim();if(!T){lg("Informe o token!","err");return;}var btn=document.getElementById("btn");btn.disabled=true;try{var lf=document.getElementById("fL").files[0],ff=document.getElementById("fF").files[0];if(!lf||!ff){lg("Selecione os 2 arquivos!","err");btn.disabled=false;return;}lg("Lendo arquivos...","warn");var lb=await rb(lf),fb=await rb(ff);var lm=lf.type||"image/png",fm=ff.type||"image/jpeg";lg("  Logo:"+lb.length+"chars Fundo:"+fb.length+"chars","ok");lg("Buscando HTML...","warn");var res=await fetch(U,{headers:{"Authorization":"token "+T,"User-Agent":"ab"}});var d=await res.json();if(!d.sha){lg("Erro GitHub: "+JSON.stringify(d).substring(0,100),"err");btn.disabled=false;return;}var raw=atob(d.content.replace(/\n/g,""));var by=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)by[i]=raw.charCodeAt(i);var h=new TextDecoder("utf-8").decode(by);lg("  SHA:"+d.sha.substring(0,8)+" size:"+h.length,"ok");lg("P1: Logo...","warn");var p1=rpng(h,"data:"+lm+";base64,"+lb);h=p1.h;lg("  "+p1.c+" logos trocadas",p1.c>0?"ok":"err");lg("P2: Fundo...","warn");var ji=h.indexOf("data:image/jpeg;base64,");if(ji>-1){var je=h.indexOf('"',ji+23),ob="data:image/jpeg;base64,"+h.substring(ji+23,je),nb="data:"+fm+";base64,"+fb,fc=0;while(h.indexOf(ob)>-1){h=h.replace(ob,nb);fc++;}lg("  fundo "+fc+"x",fc>0?"ok":"warn");}var mcp=h.indexOf(".main-content {\n  margin-left: 240px;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  background-image:");if(mcp>-1){var tbp=h.indexOf(".topbar {",mcp);if(tbp>-1){h=h.substring(0,mcp)+".main-content {\n  margin-left: 240px;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  background: #f0f2f0;\n}\n"+h.substring(tbp);lg("  bg removido","ok");}}else{lg("  sem bg-image","ok");}lg("P3: enviarEmail...","warn");if(h.indexOf("function enviarEmail")===-1){var smk='From:"helpdesck@terradobrasil.com.br"};</script>';if(h.indexOf(smk)>-1){var fn="\nfunction enviarEmail(para,assunto,corpo){if(!window.Email)return;var c=window._smtpConfig;Email.send({Host:c.Host,Username:c.Username,Password:c.Password,Port:c.Port,To:para,From:c.From,Subject:assunto,Body:corpo.replace(/\\n/g,\"<br>\")}).then(function(m){console.log(\"Email\",m);}).catch(function(e){console.warn(e);});}";h=h.replace(smk,smk+fn);lg("  fn adicionada","ok");}}else lg("  ja existe","ok");lg("P4: Style logo...","warn");var s1='style="height:30px;object-fit:contain;filter:brightness(0) invert(1);'';var s2='style="width:150px;height:auto;display:block;filter:brightness(0) invert(1);'';var ns2='style="width:150px;height:auto;display:block;"';while(h.indexOf(s1)>-1)h=h.replace(s1,ns2);while(h.indexOf(s2)>-1)h=h.replace(s2,ns2);lg("  ok","ok");lg("Checks: Visao:"+(h.indexOf("Vis\u00e3o")>-1?"OK":"ERRO")+" Email:"+(h.indexOf("function enviarEmail")>-1?"OK":"ERRO")+" Logo:"+(h.indexOf(lb.substring(0,20))>-1?"OK":"ERRO"),"ok");lg("Deploy...","warn");var b64=enc(h);lg("  encoded:"+b64.length,"ok");var fr=await fetch(U,{headers:{"Authorization":"token "+T,"User-Agent":"ab"}});var fd=await fr.json();lg("  SHA fresco:"+fd.sha.substring(0,8),"ok");var pr=await fetch(U,{method:"PUT",headers:{"Authorization":"token "+T,"Content-Type":"application/json","User-Agent":"ab"},body:JSON.stringify({message:"fix v5: logo+fundo+email",content:b64,sha:fd.sha})});var pd=await pr.json();if(pd.commit){lg("DEPLOY OK! SHA:"+pd.commit.sha.substring(0,8),"ok");lg("Acesse: https://warleytavares.github.io/agrobrasil-helpdesk/?v=11","ok");}else lg("ERRO: "+JSON.stringify(pd).substring(0,300),"err");}catch(e){lg("EXCECAO: "+e.message,"err");}btn.disabled=false;}</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Deploy HelpDesk</title>
+<style>
+body{font-family:Arial;max-width:600px;margin:30px auto;padding:20px;background:#f0f0f0}
+h2{color:#1A5C2A}
+button{background:#1A5C2A;color:#fff;border:none;padding:12px 24px;font-size:14px;border-radius:6px;cursor:pointer;margin:4px}
+button:disabled{background:#aaa}
+#log{background:#111;color:#0f0;font-family:monospace;font-size:12px;padding:12px;border-radius:6px;min-height:150px;max-height:380px;overflow-y:auto;margin-top:12px;white-space:pre-wrap}
+.ok{color:#4fc}.err{color:#f44}.warn{color:#ff0}
+label{font-weight:bold;display:block;margin-top:10px}
+input[type=file]{display:block;margin:6px 0;padding:6px;border:2px dashed #ccc;border-radius:5px;width:100%;box-sizing:border-box}
+input[type=password]{display:block;margin:6px 0;padding:8px;border:1px solid #ccc;border-radius:5px;width:100%;box-sizing:border-box}
+</style>
+</head>
+<body>
+<h2>Deploy HelpDesk AgroBrasil</h2>
+<label>Token GitHub:</label>
+<input type="password" id="tk" placeholder="ghp_...">
+<label>Logo.png:</label>
+<input type="file" id="fL" accept="image/*">
+<label>Fundo.jpeg:</label>
+<input type="file" id="fF" accept="image/*">
+<br>
+<button id="btn" onclick="window._go()">Fazer Deploy</button>
+<button onclick="document.getElementById('log').textContent=''">Limpar</button>
+<div id="log">Pronto.</div>
+<script>
+window._go = async function() {
+  var T = document.getElementById('tk').value.trim();
+  if (!T) { _lg('Informe o token!', 'err'); return; }
+  var btn = document.getElementById('btn');
+  btn.disabled = true;
+  try {
+    var lf = document.getElementById('fL').files[0];
+    var ff = document.getElementById('fF').files[0];
+    if (!lf || !ff) { _lg('Selecione os 2 arquivos!', 'err'); btn.disabled=false; return; }
+
+    _lg('Lendo arquivos...', 'warn');
+    var lb = await _rb(lf);
+    var fb = await _rb(ff);
+    var lm = lf.type || 'image/png';
+    var fm = ff.type || 'image/jpeg';
+    _lg('  Logo: ' + lb.length + ' chars', 'ok');
+    _lg('  Fundo: ' + fb.length + ' chars', 'ok');
+
+    _lg('Buscando HTML do GitHub...', 'warn');
+    var U = 'https://api.github.com/repos/warleytavares/agrobrasil-helpdesk/contents/index.html';
+    var res = await fetch(U, { headers: { 'Authorization': 'token ' + T, 'User-Agent': 'ab' } });
+    var data = await res.json();
+    if (!data.sha) { _lg('Erro: ' + JSON.stringify(data).substring(0,100), 'err'); btn.disabled=false; return; }
+    var raw = atob(data.content.replace(/\n/g, ''));
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    var h = new TextDecoder('utf-8').decode(bytes);
+    _lg('  SHA: ' + data.sha.substring(0,8) + ' | Size: ' + h.length, 'ok');
+
+    // PATCH 1: Logo
+    _lg('PATCH 1: Logo...', 'warn');
+    var newLogoSrc = 'data:' + lm + ';base64,' + lb;
+    var logoMk = 'src="data:image/png;base64,';
+    var result = '', rem = h, cnt = 0;
+    while (true) {
+      var pos = rem.indexOf(logoMk);
+      if (pos === -1) { result += rem; break; }
+      var after = rem.substring(pos + logoMk.length);
+      var eq = after.indexOf('"');
+      if (eq === -1) { result += rem; break; }
+      result += rem.substring(0, pos) + 'src="' + newLogoSrc + '"';
+      rem = after.substring(eq + 1);
+      cnt++;
+    }
+    h = result;
+    _lg('  ' + cnt + ' logos substituidas', cnt > 0 ? 'ok' : 'err');
+
+    // PATCH 2: Fundo
+    _lg('PATCH 2: Fundo...', 'warn');
+    var jpegMk = 'data:image/jpeg;base64,';
+    var ji = h.indexOf(jpegMk);
+    if (ji > -1) {
+      var je = h.indexOf('"', ji + jpegMk.length);
+      var oldFundo = h.substring(ji, je);
+      var newFundo = 'data:' + fm + ';base64,' + fb;
+      var fc = 0;
+      while (h.indexOf(oldFundo) > -1) { h = h.replace(oldFundo, newFundo); fc++; }
+      _lg('  fundo substituido ' + fc + 'x', fc > 0 ? 'ok' : 'warn');
+    } else {
+      _lg('  nenhum JPEG no HTML', 'warn');
+    }
+
+    // PATCH 2b: Remover background-image do main-content
+    var mcMk = '.main-content {\n  margin-left: 240px;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  background-image:';
+    var mcp = h.indexOf(mcMk);
+    if (mcp > -1) {
+      var tbp = h.indexOf('.topbar {', mcp);
+      if (tbp > -1) {
+        h = h.substring(0, mcp) + '.main-content {\n  margin-left: 240px;\n  min-height: 100vh;\n  display: flex;\n  flex-direction: column;\n  background: #f0f2f0;\n}\n' + h.substring(tbp);
+        _lg('  bg-image removido do main-content', 'ok');
+      }
+    } else {
+      _lg('  main-content sem bg-image', 'ok');
+    }
+
+    // PATCH 3: enviarEmail
+    _lg('PATCH 3: enviarEmail...', 'warn');
+    if (h.indexOf('function enviarEmail') === -1) {
+      var smk = 'From:"helpdesck@terradobrasil.com.br"};</script>';
+      if (h.indexOf(smk) > -1) {
+        var brtag = '<br>';
+        var fn = '\nfunction enviarEmail(para,assunto,corpo){'
+          + 'if(!window.Email)return;'
+          + 'var c=window._smtpConfig;'
+          + 'Email.send({Host:c.Host,Username:c.Username,Password:c.Password,'
+          + 'Port:c.Port,To:para,From:c.From,Subject:assunto,'
+          + 'Body:corpo.replace(/\\n/g,"' + brtag + '")'
+          + '}).then(function(m){console.log("Email",m);'
+          + '}).catch(function(e){console.warn(e);});}';
+        h = h.replace(smk, smk + fn);
+        _lg('  funcao adicionada', 'ok');
+      } else {
+        _lg('  marcador SMTP nao encontrado', 'warn');
+      }
+    } else {
+      _lg('  funcao ja existe', 'ok');
+    }
+
+    // PATCH 4: Style inline logo
+    _lg('PATCH 4: Style logo...', 'warn');
+    var oldS1 = 'style="height:30px;object-fit:contain;filter:brightness(0) invert(1);"';
+    var oldS2 = 'style="width:150px;height:auto;display:block;filter:brightness(0) invert(1);"';
+    var newS = 'style="width:150px;height:auto;display:block;"';
+    while (h.indexOf(oldS1) > -1) h = h.replace(oldS1, newS);
+    while (h.indexOf(oldS2) > -1) h = h.replace(oldS2, newS);
+    _lg('  ok', 'ok');
+
+    // Verificacoes
+    _lg('Verificacoes finais:', 'warn');
+    _lg('  Visao: ' + (h.indexOf('Vis\u00e3o') > -1 ? 'OK' : 'ERRO'), h.indexOf('Vis\u00e3o') > -1 ? 'ok' : 'err');
+    _lg('  enviarEmail: ' + (h.indexOf('function enviarEmail') > -1 ? 'OK' : 'ERRO'), h.indexOf('function enviarEmail') > -1 ? 'ok' : 'err');
+    _lg('  Logo nova: ' + (h.indexOf(lb.substring(0, 20)) > -1 ? 'OK' : 'ERRO'), h.indexOf(lb.substring(0, 20)) > -1 ? 'ok' : 'err');
+    _lg('  Size: ' + h.length, 'ok');
+
+    // Deploy
+    _lg('Fazendo deploy...', 'warn');
+    var b64 = _enc(h);
+    _lg('  Encoded: ' + b64.length + ' chars', 'ok');
+
+    var fr = await fetch(U, { headers: { 'Authorization': 'token ' + T, 'User-Agent': 'ab' } });
+    var fd = await fr.json();
+    _lg('  SHA fresco: ' + fd.sha.substring(0,8), 'ok');
+
+    var pr = await fetch(U, {
+      method: 'PUT',
+      headers: { 'Authorization': 'token ' + T, 'Content-Type': 'application/json', 'User-Agent': 'ab' },
+      body: JSON.stringify({ message: 'fix v5: logo real + fundo + enviarEmail', content: b64, sha: fd.sha })
+    });
+    var pd = await pr.json();
+
+    if (pd.commit) {
+      _lg('DEPLOY OK! SHA: ' + pd.commit.sha.substring(0,8), 'ok');
+      _lg('Acesse em ~2min:', 'warn');
+      _lg('https://warleytavares.github.io/agrobrasil-helpdesk/?v=11', 'ok');
+    } else {
+      _lg('ERRO: ' + JSON.stringify(pd).substring(0, 300), 'err');
+    }
+
+  } catch(e) {
+    _lg('EXCECAO: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+};
+
+function _lg(m, c) {
+  var el = document.getElementById('log');
+  var sp = document.createElement('span');
+  if (c) sp.className = c;
+  sp.textContent = m + '\n';
+  el.appendChild(sp);
+  el.scrollTop = el.scrollHeight;
+}
+
+function _rb(f) {
+  return new Promise(function(res, rej) {
+    var r = new FileReader();
+    r.onload = function(e) { res(e.target.result.split(',')[1]); };
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+}
+
+function _enc(str) {
+  var bytes = new TextEncoder().encode(str);
+  var bin = '';
+  for (var i = 0; i < bytes.length; i += 8192) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+  }
+  return btoa(bin);
+}
+</script>
+</body>
+</html>
