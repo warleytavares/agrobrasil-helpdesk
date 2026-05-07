@@ -688,7 +688,7 @@ tbody td { padding: 12px 16px; font-size: 13px; }
 .aviso-box.success { background: var(--verde-light); border-left: 3px solid var(--verde); color: var(--verde); }
 .aviso-box.warning { background: var(--amarelo-light); border-left: 3px solid var(--amarelo); color: #856404; }
 </style>
-<script src="https://smtpjs.com/v3/smtp.js"></script><script>window._smtpConfig={Host:"smtp.office365.com",Username:"helpdesck@terradobrasil.com.br",Password:"Agrob@2026",Port:587,From:"helpdesck@terradobrasil.com.br"};</script>
+<script src="https://smtpjs.com/v3/smtp.js"></script><script>window._smtpConfig={Host:"smtp.office365.com",Username:"helpdesck@terradobrasil.com.br",Password:"Agrob@2026",Port:587,From:"helpdesck@terradobrasil.com.br"};
 function enviarEmail(para, assunto, corpo) {
   if (!window.Email) return;
   var c = window._smtpConfig;
@@ -700,6 +700,7 @@ function enviarEmail(para, assunto, corpo) {
   }).then(function(m){ console.log("Email enviado", m); })
    .catch(function(e){ console.warn("Email erro", e); });
 }
+</script>
 <style>
 .anexos-area{border:2px dashed #ccc;border-radius:8px;padding:16px;text-align:center;cursor:pointer;margin-top:8px;position:relative;transition:border-color .2s,background .2s}
 .anexos-area:hover{border-color:#1A5C2A;background:#f0f8f0}
