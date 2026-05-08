@@ -699,7 +699,7 @@ function enviarEmail(para, assunto, corpo) {
   emailjs.send(window._ejsSvcId, window._ejsTplId, {
     to_email: para,
     subject: assunto,
-    message: corpo
+    mensagem: corpo
   }).then(function(r){ console.log("Email OK", r); })
     .catch(function(e){ console.warn("Email erro", e); });
 }
