@@ -1660,6 +1660,7 @@ function abrirChamado() {
   chamados.unshift(chamado);
   DB.set('chamados', chamados);
   toast(`✅ Chamado ${chamado.numero} aberto com sucesso!`, 'success');
+  setTimeout(function(){irPara('todos-chamados');renderDashboard();},300);
   // Email solicitante
   var uSol=(DB.get('usuarios')||[]).find(function(u){return u.id===chamado.usuarioId;});
   if(uSol&&uSol.email)enviarEmail(uSol.email,'[HelpDesk] Chamado '+chamado.numero+' aberto - '+chamado.assunto,'Olá '+uSol.nome+',\n\nSeu chamado foi registrado!\n\nNúmero: '+chamado.numero+'\nAssunto: '+chamado.assunto+'\nPrioridade: '+chamado.prioridade+'\n'+(atAuto?'Atendente: '+atAuto.nome+'\n':'')+'\nAcompanhe em: https://warleytavares.github.io/agrobrasil-helpdesk/');
@@ -1783,6 +1784,7 @@ function alterarStatus(novoStatus) {
   });
   DB.set('chamados', chamados);
   toast(`Status alterado para "${novoStatus}"`, 'success');
+  renderDashboard();
   abrirTicket(ticketAtivo);
 }
 
@@ -1803,6 +1805,7 @@ function atribuirAtendente() {
   });
   DB.set('chamados', chamados);
   toast('Atendente atribuído!', 'success');
+  renderDashboard();
   abrirTicket(ticketAtivo);
 }
 
