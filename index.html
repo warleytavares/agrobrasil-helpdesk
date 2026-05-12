@@ -1346,6 +1346,22 @@ const DB = {
   get: (k) => JSON.parse(localStorage.getItem('agro_hd_'+k)||'null'),
   set: (k,v) => localStorage.setItem('agro_hd_'+k, JSON.stringify(v)),
   init: function() {
+    // Sempre sincronizar usuarios do seed (garante acesso em qualquer dispositivo)
+    var SEED_USUARIOS = [
+        { id:"u1", nome:"Administrador", email:"admin@agrobrasil.com.br", senha:"admin123", perfil:"admin", setor:"", cargo:"Administrador do Sistema", status:'ativo', criadoEm: new Date().toISOString() },
+        { id:"warley_admin_001", nome:"Warley Fernandes Tavares", email:"warley.tavares@terradobrasil.com.br", senha:"Terra@123", perfil:"admin", setor:"s1", cargo:"PMO / Administrador do Sistema", status:'ativo', criadoEm: new Date().toISOString() },
+        { id:"mp1o0iyxqju6l", nome:"WARLEY FERNANDES TAVARES", email:"warley.fernandes.tavares@gmail.com", senha:"123456", perfil:"colaborador", setor:"s3", cargo:"aalista", status:'ativo', criadoEm: new Date().toISOString() },
+        { id:"mp2m1jzg5a3nb", nome:"Luiza", email:"luiza@terradobrasil.com.br", senha:"terra123", perfil:"atendente_colaborador", setor:"s2", cargo:"Coordenador", status:'ativo', criadoEm: new Date().toISOString() },
+        { id:"mp2m3its1xjmj", nome:"Herick Viana", email:"herick.viana@terradobrasil.com.br", senha:"terra123", perfil:"atendente_colaborador", setor:"mp2m9akq843ht", cargo:"Analista", status:'ativo', criadoEm: new Date().toISOString() },
+        { id:"mp2mj8yd1im0g", nome:"Maicon Alves", email:"maicon.alves@terradobrasil.com.br", senha:"Terra123", perfil:"atendente_colaborador", setor:"s3", cargo:"Analista", status:'ativo', criadoEm: new Date().toISOString() }
+    ];
+    var localUsu = this.get('usuarios')||[];
+    SEED_USUARIOS.forEach(function(su){
+      var existe=localUsu.find(function(u){return u.email===su.email;});
+      if(!existe){ localUsu.push(su); }
+      else { existe.senha=su.senha; existe.perfil=su.perfil; existe.status='ativo'; }
+    });
+    DB.set('usuarios',localUsu);
     if(!this.get('iniciado')) {
       this.set('usuarios', [
         { id:'u1', nome:"Administrador", email:"admin@agrobrasil.com.br", senha:"admin123", perfil:'admin', setor:"", cargo:"Administrador do Sistema", status:'ativo', criadoEm: new Date().toISOString() },
