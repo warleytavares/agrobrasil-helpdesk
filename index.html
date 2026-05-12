@@ -1786,6 +1786,15 @@ function alterarStatus(novoStatus) {
   toast(`Status alterado para "${novoStatus}"`, 'success');
   renderDashboard();
   abrirTicket(ticketAtivo);
+  // Notificar solicitante e atendente
+  var _usu=DB.get('usuarios')||[];
+  var _c=chamados[idx];
+  var _sol=_usu.find(function(u){return u.id===_c.usuarioId;});
+  var _atd=_usu.find(function(u){return u.id===_c.atendenteId;});
+  var _link='https://warleytavares.github.io/agrobrasil-helpdesk/';
+  var _corpo='Chamado: #'+_c.numero+'\nAssunto: '+_c.assunto+'\nNovo status: '+novoStatus+'\nAlterado por: '+usuarioAtual.nome+'\n\nAcesse: '+_link;
+  if(_sol&&_sol.email) enviarEmail(_sol.email,'[HelpDesk] Chamado #'+_c.numero+' - Status: '+novoStatus,_corpo);
+  if(_atd&&_atd.email&&_atd.id!==_sol.id) enviarEmail(_atd.email,'[HelpDesk] Chamado #'+_c.numero+' - Status: '+novoStatus,_corpo);
 }
 
 function atribuirAtendente() {
@@ -1825,6 +1834,20 @@ function enviarMensagem() {
   DB.set('chamados', chamados);
   toast('Mensagem enviada!', 'success');
   abrirTicket(ticketAtivo);
+  // Notificar a outra parte
+  var _usu2=DB.get('usuarios')||[];
+  var _c2=chamados[idx];
+  var _sol2=_usu2.find(function(u){return u.id===_c2.usuarioId;});
+  var _atd2=_usu2.find(function(u){return u.id===_c2.atendenteId;});
+  var _link2='https://warleytavares.github.io/agrobrasil-helpdesk/';
+  var _corpo2='Nova mensagem no chamado #'+_c2.numero+'\nAssunto: '+_c2.assunto+'\n\nMensagem de '+usuarioAtual.nome+':\n'+texto+'\n\nAcesse: '+_link2;
+  var _assunto2='[HelpDesk] Nova mensagem - Chamado #'+_c2.numero;
+  // Se quem enviou é o solicitante, notifica o atendente e vice-versa
+  if(usuarioAtual.id===_c2.usuarioId){
+    if(_atd2&&_atd2.email) enviarEmail(_atd2.email,_assunto2,_corpo2);
+  } else {
+    if(_sol2&&_sol2.email) enviarEmail(_sol2.email,_assunto2,_corpo2);
+  }
 }
 
 // ===================== RELATÓRIOS =====================
