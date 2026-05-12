@@ -1471,7 +1471,7 @@ function irPara(pagina) {
   // Mostra botão "Ver todos" apenas para admin/atendente
   var btnVerTodos = document.getElementById('btn-ver-todos');
   if (btnVerTodos) {
-    if (usuarioAtual && (usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente')) {
+    if (usuarioAtual && (isAtendente(usuarioAtual))) {
       btnVerTodos.innerHTML = '<button class="btn btn-outline btn-sm" onclick="irPara(\'todos-chamados\')">Ver todos →</button>';
     } else {
       btnVerTodos.innerHTML = '';
@@ -1479,6 +1479,9 @@ function irPara(pagina) {
   }
 }
 
+
+function isAtendente(u){ return u && (u.perfil==='atendente'||u.perfil==='atendente_colaborador'||u.perfil==='admin'); }
+function isColaborador(u){ return u && (u.perfil==='colaborador'||u.perfil==='atendente_colaborador'); }
 // ===================== HELPERS =====================
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
 function fmtData(iso) {
@@ -1740,12 +1743,12 @@ function abrirTicket(id) {
     <div class="ticket-info-item"><div class="tit">Última atualização</div><div class="val">${fmtData(c.atualizadoEm)}</div></div>
     ${c.ramal ? `<div class="ticket-info-item"><div class="tit">Contato / Ramal</div><div class="val">${c.ramal}</div></div>` : ''}
   `;
-  const isAdminAtend = usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+  const isAdminAtend = isAtendente(usuarioAtual);
   document.getElementById('ticket-status-box').style.display = isAdminAtend ? '' : 'none';
   const atendenteBox = document.getElementById('atendente-box');
   atendenteBox.style.display = isAdminAtend ? '' : 'none';
   if (isAdminAtend) {
-    const atendentes = (DB.get('usuarios')||[]).filter(u=>u.perfil==='atendente'||u.perfil==='admin');
+    const atendentes = (DB.get('usuarios')||[]).filter(u=>isAtendente(u));
     document.getElementById('sel-atendente').innerHTML = '<option value="">Sem atendente</option>' + atendentes.map(u=>`<option value="${u.id}" ${c.atendenteId===u.id?'selected':''}>${u.nome}</option>`).join('');
   }
   // Mensagens
