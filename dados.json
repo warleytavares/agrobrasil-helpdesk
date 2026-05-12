@@ -13,7 +13,7 @@
       "usuarioId": "warley_admin_001",
       "atendenteId": null,
       "criadoEm": "2026-05-12T14:03:03.015Z",
-      "atualizadoEm": "2026-05-12T14:03:29.881Z",
+      "atualizadoEm": "2026-05-12T14:03:41.983Z",
       "mensagens": [
         {
           "id": "mp2pajfsvfgtt",
@@ -30,6 +30,15 @@
           "tipo": "sistema",
           "texto": "🔄 Status alterado para \"Em andamento\" por Warley Fernandes Tavares.",
           "criadoEm": "2026-05-12T14:03:29.881Z"
+        },
+        {
+          "id": "mp2pbdi8bgse7",
+          "autorId": "warley_admin_001",
+          "autorNome": "Warley Fernandes Tavares",
+          "tipo": "mensagem",
+          "texto": "estou atendendo e posso etetdgd",
+          "anexos": [],
+          "criadoEm": "2026-05-12T14:03:41.983Z"
         }
       ]
     }
