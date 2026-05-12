@@ -1411,8 +1411,13 @@ const DB = {
   listenChamados: function(callback) {
     fbDB.ref('chamados').on('value', function(snap) {
       if(!window._fbCache) window._fbCache = {};
-      window._fbCache.chamados = snap.val() || [];
+      var v=snap.val();
+      window._fbCache.chamados=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
       if(callback) callback();
+      // Atualizar renders ativos automaticamente
+      if(typeof renderDashboard==='function' && document.getElementById('page-dashboard') && document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+      if(typeof renderTodosChamados==='function' && document.getElementById('page-todos-chamados') && document.getElementById('page-todos-chamados').classList.contains('active')) renderTodosChamados();
+      if(typeof renderMeusChamados==='function' && document.getElementById('page-meus-chamados') && document.getElementById('page-meus-chamados').classList.contains('active')) renderMeusChamados();
     });
   },
 
@@ -1510,6 +1515,16 @@ function sair() {
 
 // ===================== NAVEGAÇÃO =====================
 function irPara(pagina) {
+  // Recarregar dados do Firebase para páginas com chamados
+  if(['dashboard','todos-chamados','meus-chamados'].includes(pagina)){
+    DB.ghLoad(function(){
+      _renderPagina(pagina);
+    });
+    return;
+  }
+  _renderPagina(pagina);
+}
+function _renderPagina(pagina) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('page-'+pagina);
@@ -1820,6 +1835,8 @@ function renderTodosChamados() {
 
 // ===================== TICKET DETALHE =====================
 function abrirTicket(id) {
+  // Sempre recarregar dados frescos do Firebase antes de abrir ticket
+  DB.ghLoad(function(){
   const chamados = getChamados();
   const c = chamados.find(x=>x.id===id);
   if (!c) return;
@@ -1878,6 +1895,7 @@ function abrirTicket(id) {
     const ml = document.getElementById('msg-list');
     ml.scrollTop = ml.scrollHeight;
   }, 100);
+  }); // fim ghLoad
 }
 
 function alterarStatus(novoStatus) {
