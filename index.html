@@ -1178,6 +1178,7 @@ function enviarEmail(para, assunto, corpo) {
           <button class="btn btn-azul btn-sm" onclick="alterarStatus('Em andamento')">⚙️ Em andamento</button>
           <button class="btn btn-primary btn-sm" onclick="alterarStatus('Resolvido')">✅ Resolvido</button>
           <button class="btn btn-outline btn-sm" onclick="alterarStatus('Cancelado')">❌ Cancelado</button>
+          ${usuarioAtual&&usuarioAtual.perfil==='admin'?'<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;margin-left:12px" onclick="excluirChamado(ticketAtivo)">🗑️ Excluir Chamado</button>':''}
         </div>
       </div>
       <div class="form-group" id="atendente-box" style="">
@@ -1484,6 +1485,17 @@ function irPara(pagina) {
 
 function isAtendente(u){ return u && (u.perfil==='atendente'||u.perfil==='atendente_colaborador'||u.perfil==='admin'); }
 function isColaborador(u){ return u && (u.perfil==='colaborador'||u.perfil==='atendente_colaborador'); }
+function excluirChamado(id) {
+  if(usuarioAtual.perfil !== 'admin') { toast('Apenas administradores podem excluir chamados.', 'error'); return; }
+  if(!confirm('Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.')) return;
+  var chamados = (DB.get('chamados')||[]).filter(function(c){ return c.id !== id; });
+  DB.set('chamados', chamados);
+  fecharModal('modal-ticket');
+  toast('Chamado excluído com sucesso.', 'success');
+  renderDashboard();
+  if(document.getElementById('page-todos-chamados') && document.getElementById('page-todos-chamados').style.display !== 'none') renderTodosChamados();
+}
+
 // ===================== HELPERS =====================
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
 function fmtData(iso) {
@@ -1610,7 +1622,10 @@ function renderMeusChamados() {
       <td>${badgePrio(c.prioridade)}</td>
       <td>${badgeStatus(c.status)}</td>
       <td>${fmtData(c.atualizadoEm||c.criadoEm)}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('${c.id}')">Ver →</button></td>
+      <td style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('${c.id}')">Ver →</button>
+        ${usuarioAtual&&usuarioAtual.perfil==='admin'?'<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer" onclick="event.stopPropagation();excluirChamado(''+c.id+'')">🗑️</button>':''}
+      </td>
     </tr>
   `).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="icon">🎉</div><h3>Nenhum chamado encontrado</h3></div></td></tr>';
 }
