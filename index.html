@@ -1369,23 +1369,30 @@ const DB = {
     }
   },
     ghLoad: function(callback) {
-    if(window._ghCache.data && (Date.now()-window._ghCache.ts)<3000) {
+    if(window._ghCache.data && (Date.now()-window._ghCache.ts)<5000) {
       if(callback) callback(); return;
     }
-    fetch(GH_DADOS+'?t='+Date.now(),{headers:{'Authorization':'token '+GH_TOKEN,'User-Agent':'ab'}})
-    .then(function(r){return r.json();})
-    .then(function(resp){
-      try {
-        var jsonStr=atob(resp.content.replace(/
-/g,''));
-        window._ghCache.data=JSON.parse(jsonStr);
-        window._ghCache.sha=resp.sha;
-        window._ghCache.ts=Date.now();
-        console.log('ghLoad OK chamados:'+(window._ghCache.data.chamados||[]).length);
-      } catch(e){ console.warn('ghLoad err:',e); if(!window._ghCache.data) window._ghCache.data={chamados:[],contador:0}; }
+    // Usar raw.githubusercontent para leitura sem cache e sem autenticação
+    var rawUrl='https://raw.githubusercontent.com/warleytavares/agrobrasil-helpdesk/main/dados.json?t='+Date.now();
+    var timeout=setTimeout(function(){
+      console.warn('ghLoad timeout - usando cache local');
+      if(!window._ghCache.data) window._ghCache.data={chamados:[],contador:0};
+      if(callback) callback();
+    },5000);
+    fetch(rawUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(parsed){
+      clearTimeout(timeout);
+      window._ghCache.data=parsed;
+      window._ghCache.ts=Date.now();
+      // Buscar sha para poder salvar depois
+      fetch(GH_DADOS,{headers:{'Authorization':'token '+GH_TOKEN,'User-Agent':'ab'}})
+      .then(function(r2){return r2.json();})
+      .then(function(d2){if(d2.sha) window._ghCache.sha=d2.sha;});
       if(callback) callback();
     }).catch(function(e){
-      console.warn('ghLoad fetch err:',e);
+      clearTimeout(timeout);
+      console.warn('ghLoad erro:',e);
       if(!window._ghCache.data) window._ghCache.data={chamados:[],contador:0};
       if(callback) callback();
     });
