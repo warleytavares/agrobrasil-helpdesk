@@ -1,47 +1,4 @@
 {
-  "chamados": [
-    {
-      "id": "mp2pajfrtnh3q",
-      "numero": "#0001",
-      "setorId": "s1",
-      "areaId": "a3",
-      "assunto": "problem,a com a impressoa",
-      "descricao": "kdjgalsfdgjpeojwedlojer jwepfo jwedfpk jwerowjsg dgf\n\nwjrlewkfhgçlsfkhgsdlkf",
-      "prioridade": "Baixa",
-      "ramal": "",
-      "status": "Em andamento",
-      "usuarioId": "warley_admin_001",
-      "atendenteId": null,
-      "criadoEm": "2026-05-12T14:03:03.015Z",
-      "atualizadoEm": "2026-05-12T14:03:41.983Z",
-      "mensagens": [
-        {
-          "id": "mp2pajfsvfgtt",
-          "autorId": "warley_admin_001",
-          "autorNome": "Warley Fernandes Tavares",
-          "tipo": "sistema",
-          "texto": "✅ Chamado aberto por Warley Fernandes Tavares em 12/05/2026 11:03.\n\n📋 Descrição: kdjgalsfdgjpeojwedlojer jwepfo jwedfpk jwerowjsg dgf\n\nwjrlewkfhgçlsfkhgsdlkf",
-          "criadoEm": "2026-05-12T14:03:03.015Z"
-        },
-        {
-          "id": "mp2pb4613yep5",
-          "autorId": "warley_admin_001",
-          "autorNome": "Warley Fernandes Tavares",
-          "tipo": "sistema",
-          "texto": "🔄 Status alterado para \"Em andamento\" por Warley Fernandes Tavares.",
-          "criadoEm": "2026-05-12T14:03:29.881Z"
-        },
-        {
-          "id": "mp2pbdi8bgse7",
-          "autorId": "warley_admin_001",
-          "autorNome": "Warley Fernandes Tavares",
-          "tipo": "mensagem",
-          "texto": "estou atendendo e posso etetdgd",
-          "anexos": [],
-          "criadoEm": "2026-05-12T14:03:41.983Z"
-        }
-      ]
-    }
-  ],
+  "chamados": [],
   "contador": 1
 }
