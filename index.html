@@ -1372,7 +1372,12 @@ const DB = {
   get: function(k) {
     // Firebase é assíncrono — retorna do cache em memória
     if(this._fbKeys.includes(k)) {
-      return window._fbCache ? window._fbCache[k] : null;
+      var val = window._fbCache ? window._fbCache[k] : null;
+      // Firebase converte arrays com null em objetos — normalizar para array
+      if(val !== null && val !== undefined && !Array.isArray(val) && typeof val === 'object') {
+        val = Object.values(val).filter(function(x){ return x !== null; });
+      }
+      return val;
     }
     return JSON.parse(localStorage.getItem('agro_hd_'+k)||'null');
   },
@@ -1380,8 +1385,10 @@ const DB = {
   set: function(k, v) {
     if(this._fbKeys.includes(k)) {
       if(!window._fbCache) window._fbCache = {};
-      window._fbCache[k] = v;
-      fbDB.ref(k).set(v);
+      // Garantir array limpo para chamados e usuarios
+      var toSave = Array.isArray(v) ? v.filter(function(x){return x!==null&&x!==undefined;}) : v;
+      window._fbCache[k] = toSave;
+      fbDB.ref(k).set(toSave);
     } else {
       localStorage.setItem('agro_hd_'+k, JSON.stringify(v));
     }
@@ -1763,7 +1770,6 @@ function abrirChamado() {
   var atAuto=atribuirAtendente(setorId);
   if(atAuto){chamado.atendenteId=atAuto.id;chamado.mensagens.push({id:uid(),autorId:'sistema',autorNome:'Sistema',tipo:'sistema',texto:'👤 Atribuído para: '+atAuto.nome,criadoEm:new Date().toISOString()});}
   chamados.unshift(chamado);
-  window._ghCache.ts=0;
   DB.set('chamados', chamados);
   toast(`✅ Chamado ${chamado.numero} aberto com sucesso!`, 'success');
   setTimeout(function(){irPara('todos-chamados');renderDashboard();},300);
