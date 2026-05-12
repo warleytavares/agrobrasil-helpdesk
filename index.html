@@ -1754,6 +1754,15 @@ function abrirTicket(id) {
     <div class="msg-item ${m.autorId===usuarioAtual.id?'usuario':'atendente'}">
       <div class="msg-meta">${m.autorNome} · ${fmtData(m.criadoEm)}</div>
       <div style="white-space:pre-wrap">${m.texto}</div>
+      ${(m.anexos&&m.anexos.length>0)?'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+m.anexos.map(function(a){
+        if(a.tipo&&a.tipo.startsWith('image/')){
+          return '<a href="'+a.data+'" target="_blank" title="'+a.nome+'"><img src="'+a.data+'" style="max-width:120px;max-height:120px;border-radius:6px;border:1px solid #ddd;cursor:pointer" /></a>';
+        } else if(a.tipo&&a.tipo.startsWith('video/')){
+          return '<video src="'+a.data+'" controls style="max-width:200px;max-height:120px;border-radius:6px"></video>';
+        } else {
+          return '<a href="'+a.data+'" download="'+a.nome+'" style="display:inline-flex;align-items:center;gap:4px;background:#f0f0f0;padding:4px 8px;border-radius:4px;font-size:12px;text-decoration:none;color:#333">📎 '+a.nome+'</a>';
+        }
+      }).join('')+'</div>':''}
     </div>
   `).join('') || '<div style="color:var(--cinza3);text-align:center;padding:20px">Nenhuma mensagem</div>';
   document.getElementById('nova-msg').value = '';
