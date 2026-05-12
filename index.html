@@ -1559,12 +1559,20 @@ function irPara(pagina) {
 }
 
 
+function getChamados(){
+  var c=getChamados();
+  return Array.isArray(c)?c.filter(Boolean):Object.values(c).filter(Boolean);
+}
+function getUsuarios(){
+  var u=DB.get('usuarios')||[];
+  return Array.isArray(u)?u.filter(Boolean):Object.values(u).filter(Boolean);
+}
 function isAtendente(u){ return u && (u.perfil==='atendente'||u.perfil==='atendente_colaborador'||u.perfil==='admin'); }
 function isColaborador(u){ return u && (u.perfil==='colaborador'||u.perfil==='atendente_colaborador'); }
 function excluirChamado(id) {
   if(!usuarioAtual||usuarioAtual.perfil!=='admin'){toast('Apenas administradores podem excluir chamados.','error');return;}
   if(!confirm('Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.')) return;
-  var chamados=(DB.get('chamados')||[]).filter(function(c){return c&&c.id!==id;});
+  var chamados=getChamados().filter(function(c){return c&&c.id!==id;});
   DB.set('chamados',chamados);
   fecharModal('modal-ticket');
   toast('Chamado excluído com sucesso.','success');
@@ -1584,7 +1592,7 @@ function fmtDataCurta(iso) {
 }
 function setorNome(id) { const s = (DB.get('setores')||[]).find(x=>x.id===id); return s?s.nome:'—'; }
 function areaNome(id) { const a = (DB.get('areas')||[]).find(x=>x.id===id); return a?a.nome:'—'; }
-function usuarioNome(id) { const u = (DB.get('usuarios')||[]).find(x=>x.id===id); return u?u.nome:'—'; }
+function usuarioNome(id) { const u = getUsuarios().find(x=>x.id===id); return u?u.nome:'—'; }
 function badgeStatus(s) {
   const m = {'Aberto':'badge-aberto','Em andamento':'badge-andamento','Resolvido':'badge-resolvido','Cancelado':'badge-cancelado'};
   return `<span class="badge ${m[s]||''}">${s}</span>`;
@@ -1613,7 +1621,7 @@ function fecharModal(id) { document.getElementById(id).classList.remove('open');
 function abrirModal(id) { document.getElementById(id).classList.add('open'); }
 
 function atualizarBadges() {
-  const chamados = DB.get('chamados') || [];
+  const chamados = getChamados();
   const abertosUser = chamados.filter(c => c.usuarioId === usuarioAtual.id && (c.status === 'Aberto' || c.status === 'Em andamento'));
   const abertosTotal = chamados.filter(c => c.status === 'Aberto');
   const bMeus = document.getElementById('badge-meus');
@@ -1627,7 +1635,7 @@ function atualizarBadges() {
 
 // ===================== DASHBOARD =====================
 function renderDashboard() {
-  const chamados = DB.get('chamados') || [];
+  const chamados = getChamados();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const hojeStr = hoje.toISOString().split('T')[0];
   const meusCh = chamados.filter(c => c.usuarioId === usuarioAtual.id);
@@ -1681,7 +1689,7 @@ function renderDashboard() {
 function renderMeusChamados() {
   const busca = (document.getElementById('filtro-meus')||{value:''}).value.toLowerCase();
   const status = (document.getElementById('filtro-meus-status')||{value:''}).value;
-  const chamados = (DB.get('chamados')||[]).filter(c => {
+  const chamados = getChamados().filter(c => {
     var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'; if(!ok) return false;
     if (status && c.status !== status) return false;
     if (busca && !c.assunto.toLowerCase().includes(busca) && !c.numero.includes(busca)) return false;
@@ -1748,7 +1756,7 @@ function abrirChamado() {
       criadoEm: agora
     }]
   };
-  const chamados = DB.get('chamados') || [];
+  const chamados = getChamados();
   // Auto-assign
   var atAuto=atribuirAtendente(setorId);
   if(atAuto){chamado.atendenteId=atAuto.id;chamado.mensagens.push({id:uid(),autorId:'sistema',autorNome:'Sistema',tipo:'sistema',texto:'👤 Atribuído para: '+atAuto.nome,criadoEm:new Date().toISOString()});}
@@ -1757,7 +1765,7 @@ function abrirChamado() {
   toast(`✅ Chamado ${chamado.numero} aberto com sucesso!`, 'success');
   setTimeout(function(){irPara('todos-chamados');renderDashboard();},300);
   // Email solicitante
-  var uSol=(DB.get('usuarios')||[]).find(function(u){return u.id===chamado.usuarioId;});
+  var uSol=getUsuarios().find(function(u){return u.id===chamado.usuarioId;});
   if(uSol&&uSol.email)enviarEmail(uSol.email,'[HelpDesk] Chamado '+chamado.numero+' aberto - '+chamado.assunto,'Olá '+uSol.nome+',\n\nSeu chamado foi registrado!\n\nNúmero: '+chamado.numero+'\nAssunto: '+chamado.assunto+'\nPrioridade: '+chamado.prioridade+'\n'+(atAuto?'Atendente: '+atAuto.nome+'\n':'')+'\nAcompanhe em: https://warleytavares.github.io/agrobrasil-helpdesk/');
   // Email atendente
   if(atAuto&&atAuto.email)enviarEmail(atAuto.email,'[HelpDesk] Chamado atribuído - '+chamado.numero,'Olá '+atAuto.nome+',\n\nNovo chamado atribuído para você!\n\nNúmero: '+chamado.numero+'\nAssunto: '+chamado.assunto+'\nSolicitante: '+usuarioAtual.nome+'\nPrioridade: '+chamado.prioridade+'\n\nAtender em: https://warleytavares.github.io/agrobrasil-helpdesk/');
@@ -1786,7 +1794,7 @@ function renderTodosChamados() {
   const status = (document.getElementById('filtro-todos-status')||{value:''}).value;
   const setorId = (document.getElementById('filtro-todos-setor')||{value:''}).value;
   const prio = (document.getElementById('filtro-todos-prio')||{value:''}).value;
-  let chamados = (DB.get('chamados')||[]).filter(c => {
+  let chamados = (getChamados()).filter(c => {
     if (status && c.status !== status) return false;
     if (setorId && c.setorId !== setorId) return false;
     if (prio && c.prioridade !== prio) return false;
@@ -1812,7 +1820,7 @@ function renderTodosChamados() {
 
 // ===================== TICKET DETALHE =====================
 function abrirTicket(id) {
-  const chamados = DB.get('chamados') || [];
+  const chamados = getChamados();
   const c = chamados.find(x=>x.id===id);
   if (!c) return;
   // Segurança: usuário comum só pode ver seus próprios chamados
@@ -1840,7 +1848,7 @@ function abrirTicket(id) {
   const atendenteBox = document.getElementById('atendente-box');
   atendenteBox.style.display = isAdminAtend ? '' : 'none';
   if (isAdminAtend) {
-    const atendentes = (DB.get('usuarios')||[]).filter(u=>isAtendente(u));
+    const atendentes = getUsuarios().filter(u=>isAtendente(u));
     document.getElementById('sel-atendente').innerHTML = '<option value="">Sem atendente</option>' + atendentes.map(u=>`<option value="${u.id}" ${c.atendenteId===u.id?'selected':''}>${u.nome}</option>`).join('');
   }
   // Mensagens
@@ -1871,8 +1879,8 @@ function abrirTicket(id) {
 
 function alterarStatus(novoStatus) {
   if (!ticketAtivo) return;
-  const chamados = DB.get('chamados') || [];
-  const idx = chamados.findIndex(c=>c.id===ticketAtivo);
+  const chamados = getChamados();
+  const idx = chamados.findIndex(function(c){return c&&c.id===ticketAtivo;});
   if (idx<0) return;
   const agora = new Date().toISOString();
   chamados[idx].status = novoStatus;
@@ -1891,7 +1899,7 @@ function alterarStatus(novoStatus) {
   renderDashboard();
   abrirTicket(ticketAtivo);
   // Notificar solicitante e atendente
-  var _usu=DB.get('usuarios')||[];
+  var _usu=getUsuarios();
   var _c=chamados[idx];
   var _sol=_usu.find(function(u){return u.id===_c.usuarioId;});
   var _atd=_usu.find(function(u){return u.id===_c.atendenteId;});
@@ -1904,8 +1912,8 @@ function alterarStatus(novoStatus) {
 function atribuirAtendente() {
   if (!ticketAtivo) return;
   const atendenteId = document.getElementById('sel-atendente').value;
-  const chamados = DB.get('chamados') || [];
-  const idx = chamados.findIndex(c=>c.id===ticketAtivo);
+  const chamados = getChamados();
+  const idx = chamados.findIndex(function(c){return c&&c.id===ticketAtivo;});
   if (idx<0) return;
   const agora = new Date().toISOString();
   chamados[idx].atendenteId = atendenteId || null;
@@ -1917,6 +1925,16 @@ function atribuirAtendente() {
     texto: `👤 Chamado atribuído a ${nomeAtend} por ${usuarioAtual.nome}.`, criadoEm: agora
   });
   DB.set('chamados', chamados);
+  // Enviar email ao atendente atribuído
+  if(atendenteId){
+    var _usuA=DB.get('usuarios')||[];
+    if(!Array.isArray(_usuA)) _usuA=Object.values(_usuA).filter(Boolean);
+    var _atd=_usuA.find(function(u){return u&&u.id===atendenteId;});
+    var _sol=_usuA.find(function(u){return u&&u.id===chamados[idx].usuarioId;});
+    var _link='https://warleytavares.github.io/agrobrasil-helpdesk/';
+    var _corpo='Olá '+(_atd?_atd.nome:'')+ ',\n\nUm chamado foi atribuído a você!\n\nNúmero: '+chamados[idx].numero+'\nAssunto: '+chamados[idx].assunto+'\nSolicitante: '+ (_sol?_sol.nome:'')+'\n\nAcesse: '+_link;
+    if(_atd&&_atd.email) enviarEmail(_atd.email,'[HelpDesk] Chamado #'+chamados[idx].numero+' atribuído a você',_corpo);
+  }
   toast('Atendente atribuído!', 'success');
   renderDashboard();
   abrirTicket(ticketAtivo);
@@ -1928,7 +1946,7 @@ function enviarMensagem() {
   const files = inputArq ? Array.from(inputArq.files) : [];
   if (!texto && files.length === 0) { toast('Digite uma mensagem ou anexe um arquivo.', 'error'); return; }
   if (!ticketAtivo) return;
-  var chamados = DB.get('chamados') || [];
+  var chamados = getChamados();
   if(!Array.isArray(chamados)) chamados=Object.values(chamados).filter(Boolean);
   var idx = chamados.findIndex(function(c){return c&&c.id===ticketAtivo;});
   if (idx<0) return;
@@ -1948,7 +1966,7 @@ function enviarMensagem() {
     var prev=document.getElementById('msg-preview'); if(prev) prev.innerHTML='';
     abrirTicket(ticketAtivo);
   // Notificar a outra parte
-  var _usu2=DB.get('usuarios')||[];
+  var _usu2=getUsuarios();
   var _c2=chamados[idx];
   var _sol2=_usu2.find(function(u){return u.id===_c2.usuarioId;});
   var _atd2=_usu2.find(function(u){return u.id===_c2.atendenteId;});
@@ -2003,7 +2021,7 @@ function renderRelatorio() {
   document.getElementById('rel-custom').style.display = periodo==='custom' ? 'flex' : 'none';
   const de = document.getElementById('rel-de').value;
   const ate = document.getElementById('rel-ate').value;
-  let chamados = DB.get('chamados') || [];
+  let chamados = getChamados();
   chamados = filtrarChamadosPorPeriodo(chamados, periodo, de, ate);
   if (setorFiltro) chamados = chamados.filter(c=>c.setorId===setorFiltro);
   // Cards
@@ -2072,7 +2090,7 @@ function renderRelatorio() {
 
 // ===================== EXPORT CSV =====================
 function exportarCSV() {
-  const chamados = DB.get('chamados') || [];
+  const chamados = getChamados();
   const linhas = [['Número','Assunto','Setor','Área','Prioridade','Status','Solicitante','Atendente','Aberto em','Atualizado em']];
   chamados.forEach(c => {
     linhas.push([c.numero, c.assunto, setorNome(c.setorId), areaNome(c.areaId), c.prioridade, c.status, usuarioNome(c.usuarioId), c.atendenteId?usuarioNome(c.atendenteId):'', fmtData(c.criadoEm), fmtData(c.atualizadoEm)]);
@@ -2088,7 +2106,7 @@ function exportarCSV() {
 
 // ===================== USUÁRIOS =====================
 function renderUsuarios() {
-  const usuarios = DB.get('usuarios') || [];
+  const usuarios = getUsuarios();
   const setores = DB.get('setores') || [];
   document.getElementById('lista-usuarios').innerHTML = usuarios.map(u=>`
     <div class="settings-item">
@@ -2123,7 +2141,7 @@ function abrirModalUsuario(id) {
 }
 
 function editarUsuario(id) {
-  const u = (DB.get('usuarios')||[]).find(x=>x.id===id);
+  const u = getUsuarios().find(x=>x.id===id);
   if (!u) return;
   const setores = DB.get('setores') || [];
   document.getElementById('usuario-setor').innerHTML = '<option value="">Selecione...</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
@@ -2155,7 +2173,7 @@ function salvarUsuario() {
   const status = document.getElementById('usuario-status').value;
   if (!nome||!email||!senha) { toast('Preencha nome, e-mail e senha!','error'); return; }
   if (senha.length < 6) { toast('Senha deve ter mínimo 6 caracteres!','error'); return; }
-  const usuarios = DB.get('usuarios') || [];
+  const usuarios = getUsuarios();
   if (!id) {
     if (usuarios.find(u=>u.email===email)) { toast('E-mail já cadastrado!','error'); return; }
     usuarios.push({ id:uid(), nome, email, senha, perfil, setor, cargo, status, criadoEm:new Date().toISOString() });
@@ -2172,7 +2190,7 @@ function salvarUsuario() {
 
 function excluirUsuario(id) {
   if (!confirm('Excluir este usuário?')) return;
-  const usuarios = (DB.get('usuarios')||[]).filter(u=>u.id!==id);
+  const usuarios = getUsuarios().filter(u=>u.id!==id);
   DB.set('usuarios', usuarios);
   toast('Usuário excluído.', 'warning');
   renderUsuarios();
