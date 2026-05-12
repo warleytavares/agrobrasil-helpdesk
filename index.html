@@ -1393,7 +1393,9 @@ const DB = {
   ghSave: function() {
     if(!window._ghCache.data) return;
     var conteudo=JSON.stringify(window._ghCache.data,null,2);
-    var b64=btoa(unescape(encodeURIComponent(conteudo)));
+    var bytes2=new TextEncoder().encode(conteudo),bin2='';
+    for(var i=0;i<bytes2.length;i+=8192) bin2+=String.fromCharCode.apply(null,bytes2.subarray(i,i+8192));
+    var b64=btoa(bin2);
     var body={message:'update: chamados',content:b64};
     if(window._ghCache.sha) body.sha=window._ghCache.sha;
     fetch(GH_DADOS,{method:'PUT',
