@@ -1,4 +1,4 @@
-<html lang="pt-BR"><head>
+}<html lang="pt-BR"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgroBrasil HelpDesk</title>
@@ -2179,6 +2179,40 @@ window.addEventListener('DOMContentLoaded', function() {
 document.querySelectorAll('.modal-overlay').forEach(el => {
   el.addEventListener('click', function(e) { if(e.target===this) fecharModal(this.id); });
 });
+
+function previewAnexosNC() {
+  var input = document.getElementById('nc-arquivos');
+  var preview = document.getElementById('nc-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  Array.from(input.files).forEach(function(f) {
+    var div = document.createElement('div');
+    div.style = 'display:inline-block;margin:4px;position:relative';
+    var span = document.createElement('span');
+    span.style = 'font-size:12px;background:#eee;padding:2px 6px;border-radius:4px;display:block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    span.title = f.name;
+    span.textContent = f.name;
+    div.appendChild(span);
+    preview.appendChild(div);
+  });
+}
+
+function previewAnexosMSG() {
+  var input = document.getElementById('msg-arquivos');
+  var preview = document.getElementById('msg-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  Array.from(input.files).forEach(function(f) {
+    var div = document.createElement('div');
+    div.style = 'display:inline-block;margin:4px;position:relative';
+    var span = document.createElement('span');
+    span.style = 'font-size:12px;background:#eee;padding:2px 6px;border-radius:4px;display:block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    span.title = f.name;
+    span.textContent = f.name;
+    div.appendChild(span);
+    preview.appendChild(div);
+  });
+}
 </script>
 
 
