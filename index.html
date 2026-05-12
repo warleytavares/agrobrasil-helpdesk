@@ -1358,12 +1358,7 @@ const fbDB = firebase.database();
 
 <script>
 // ===================== BANCO DE DADOS (localStorage) =====================
-const GH_TOKEN = ['ghp_','D8FfVXwhrb','ks61H41b4W','Az5osux0LQ','1DuJWL'].join('');
-const GH_DADOS = 'https://api.github.com/repos/warleytavares/agrobrasil-helpdesk/contents/dados.json';
 const GH_KEYS = ['chamados','contador']; // chaves que ficam no GitHub
-
-// Cache em memória para evitar múltiplos fetches
-window._ghCache = window._ghCache || { data: null, sha: null, ts: 0 };
 
 const DB = {
   // Chaves que ficam no Firebase (compartilhadas entre todos os dispositivos)
@@ -1396,30 +1391,19 @@ const DB = {
 
   // Carrega dados do Firebase e chama callback quando pronto
   ghLoad: function(callback) {
-    var loaded = {chamados:false, contador:false, usuarios:false};
-    if(!window._fbCache) window._fbCache = {};
-
-    function checkDone() {
-      if(loaded.chamados && loaded.contador && loaded.usuarios) {
-        if(callback) callback();
-      }
-    }
-
-    fbDB.ref('chamados').once('value', function(snap) {
-      window._fbCache.chamados = snap.val() || [];
-      loaded.chamados = true;
-      checkDone();
+    if(!window._fbCache) window._fbCache={};
+    var loaded={chamados:false,contador:false,usuarios:false};
+    function done(){ if(loaded.chamados&&loaded.contador&&loaded.usuarios&&callback) callback(); }
+    fbDB.ref('chamados').once('value',function(s){
+      var v=s.val();
+      window._fbCache.chamados=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
+      loaded.chamados=true; done();
     });
-    fbDB.ref('contador').once('value', function(snap) {
-      window._fbCache.contador = snap.val() || 0;
-      loaded.contador = true;
-      checkDone();
-    });
-    fbDB.ref('usuarios').once('value', function(snap) {
-      var usu = snap.val();
-      window._fbCache.usuarios = usu || [];
-      loaded.usuarios = true;
-      checkDone();
+    fbDB.ref('contador').once('value',function(s){ window._fbCache.contador=s.val()||0; loaded.contador=true; done(); });
+    fbDB.ref('usuarios').once('value',function(s){
+      var v=s.val();
+      window._fbCache.usuarios=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
+      loaded.usuarios=true; done();
     });
   },
 
@@ -1578,14 +1562,13 @@ function irPara(pagina) {
 function isAtendente(u){ return u && (u.perfil==='atendente'||u.perfil==='atendente_colaborador'||u.perfil==='admin'); }
 function isColaborador(u){ return u && (u.perfil==='colaborador'||u.perfil==='atendente_colaborador'); }
 function excluirChamado(id) {
-  if(usuarioAtual.perfil !== 'admin') { toast('Apenas administradores podem excluir chamados.', 'error'); return; }
+  if(!usuarioAtual||usuarioAtual.perfil!=='admin'){toast('Apenas administradores podem excluir chamados.','error');return;}
   if(!confirm('Tem certeza que deseja excluir este chamado? Esta ação não pode ser desfeita.')) return;
-  var chamados = (DB.get('chamados')||[]).filter(function(c){ return c.id !== id; });
-  DB.set('chamados', chamados);
+  var chamados=(DB.get('chamados')||[]).filter(function(c){return c&&c.id!==id;});
+  DB.set('chamados',chamados);
   fecharModal('modal-ticket');
-  toast('Chamado excluído com sucesso.', 'success');
+  toast('Chamado excluído com sucesso.','success');
   renderDashboard();
-  if(document.getElementById('page-todos-chamados') && document.getElementById('page-todos-chamados').style.display !== 'none') renderTodosChamados();
 }
 
 // ===================== HELPERS =====================
@@ -1945,8 +1928,9 @@ function enviarMensagem() {
   const files = inputArq ? Array.from(inputArq.files) : [];
   if (!texto && files.length === 0) { toast('Digite uma mensagem ou anexe um arquivo.', 'error'); return; }
   if (!ticketAtivo) return;
-  const chamados = DB.get('chamados') || [];
-  const idx = chamados.findIndex(c=>c.id===ticketAtivo);
+  var chamados = DB.get('chamados') || [];
+  if(!Array.isArray(chamados)) chamados=Object.values(chamados).filter(Boolean);
+  var idx = chamados.findIndex(function(c){return c&&c.id===ticketAtivo;});
   if (idx<0) return;
   const agora = new Date().toISOString();
 
