@@ -1368,24 +1368,24 @@ const DB = {
       localStorage.setItem('agro_hd_'+k, JSON.stringify(v));
     }
   },
-  ghLoad: function(callback) {
-    // Se cache recente (menos de 3s), usa cache
+    ghLoad: function(callback) {
     if(window._ghCache.data && (Date.now()-window._ghCache.ts)<3000) {
-      if(callback) callback();
-      return;
+      if(callback) callback(); return;
     }
-    fetch(GH_DADOS+'?t='+Date.now(),{headers:{'Authorization':'token '+GH_TOKEN,'User-Agent':'ab','Cache-Control':'no-cache'}})
+    fetch(GH_DADOS+'?t='+Date.now(),{headers:{'Authorization':'token '+GH_TOKEN,'User-Agent':'ab'}})
     .then(function(r){return r.json();})
-    .then(function(d){
-      if(d.content){
-        var raw=atob(d.content.replace(/\n/g,''));
-        window._ghCache.data=JSON.parse(decodeURIComponent(escape(raw)));
-        window._ghCache.sha=d.sha;
+    .then(function(resp){
+      try {
+        var jsonStr=atob(resp.content.replace(/
+/g,''));
+        window._ghCache.data=JSON.parse(jsonStr);
+        window._ghCache.sha=resp.sha;
         window._ghCache.ts=Date.now();
-      }
+        console.log('ghLoad OK chamados:'+(window._ghCache.data.chamados||[]).length);
+      } catch(e){ console.warn('ghLoad err:',e); if(!window._ghCache.data) window._ghCache.data={chamados:[],contador:0}; }
       if(callback) callback();
     }).catch(function(e){
-      console.warn('ghLoad erro:',e);
+      console.warn('ghLoad fetch err:',e);
       if(!window._ghCache.data) window._ghCache.data={chamados:[],contador:0};
       if(callback) callback();
     });
