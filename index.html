@@ -1422,6 +1422,9 @@ const DB = {
   },
 
   init: function() {
+    // Limpar chamados antigos do localStorage (agora no Firebase)
+    localStorage.removeItem('agro_hd_chamados');
+    localStorage.removeItem('agro_hd_contador');
     // Setores e áreas ficam no localStorage
     if(!localStorage.getItem('agro_hd_iniciado')) {
       localStorage.setItem('agro_hd_setores', JSON.stringify([
@@ -1545,7 +1548,7 @@ function _renderPagina(pagina) {
   document.getElementById('page-breadcrumb').textContent = 'AgroBrasil › ' + t[1];
   // Segurança: bloqueia usuário comum de acessar páginas restritas
   const paginasRestritas = ['todos-chamados','relatorios','usuarios','setores'];
-  const isAdminNav = usuarioAtual && (usuarioAtual.perfil==="admin"||usuarioAtual.perfil==="atendente");
+  const isAdminNav = usuarioAtual && isAtendente(usuarioAtual);
   if (paginasRestritas.includes(pagina) && !isAdminNav) {
     toast('Acesso restrito a administradores e atendentes.', 'error');
     irPara('dashboard');
@@ -1555,7 +1558,7 @@ function _renderPagina(pagina) {
     'dashboard': renderDashboard,
     'meus-chamados': renderMeusChamados,
     'todos-chamados': () => { carregarFiltroSetor(); renderTodosChamados(); },
-    'relatorios': () => { carregarFiltroSetorRel(); renderRelatorio(); },
+    'relatorios': renderRelatorios,
     'usuarios': renderUsuarios,
     'setores': renderSetores,
     'novo-chamado': carregarSetoresNC,
@@ -2016,6 +2019,60 @@ function enviarMensagem() {
 }
 
 // ===================== RELATÓRIOS =====================
+function renderRelatorios() {
+  DB.ghLoad(function(){
+    var chamados = getChamados();
+    var total = chamados.length;
+    var abertos = chamados.filter(function(c){return c.status==='Aberto';}).length;
+    var andamento = chamados.filter(function(c){return c.status==='Em andamento';}).length;
+    var resolvidos = chamados.filter(function(c){return c.status==='Resolvido';}).length;
+    var cancelados = chamados.filter(function(c){return c.status==='Cancelado';}).length;
+    var urgentes = chamados.filter(function(c){return c.prioridade==='Urgente'||c.prioridade==='Crítica';}).length;
+
+    // Calcular TMA (tempo médio de atendimento)
+    var temposRes=[];
+    chamados.filter(function(c){return c.status==='Resolvido'&&c.criadoEm&&c.atualizadoEm;}).forEach(function(c){
+      var diff=(new Date(c.atualizadoEm)-new Date(c.criadoEm))/(1000*60*60);
+      temposRes.push(diff);
+    });
+    var tma = temposRes.length>0 ? (temposRes.reduce(function(a,b){return a+b;},0)/temposRes.length).toFixed(1)+'h' : 'N/A';
+
+    // Por setor
+    var porSetor={};
+    chamados.forEach(function(c){
+      var s=c.setorNome||c.setor||'Outros';
+      porSetor[s]=(porSetor[s]||0)+1;
+    });
+
+    var el=document.getElementById('page-relatorios');
+    if(!el) return;
+    el.innerHTML=`<div class="page-header"><h2>📊 Relatórios</h2></div>
+    <div class="cards-grid">
+      <div class="card"><div class="card-label">TOTAL DE CHAMADOS</div><div class="card-value">${total}</div></div>
+      <div class="card" style="border-left:4px solid var(--amarelo)"><div class="card-label">ABERTOS</div><div class="card-value">${abertos}</div></div>
+      <div class="card" style="border-left:4px solid var(--azul)"><div class="card-label">EM ANDAMENTO</div><div class="card-value">${andamento}</div></div>
+      <div class="card" style="border-left:4px solid var(--verde)"><div class="card-label">RESOLVIDOS</div><div class="card-value">${resolvidos}</div></div>
+      <div class="card" style="border-left:4px solid var(--vermelho)"><div class="card-label">URGENTES</div><div class="card-value">${urgentes}</div></div>
+      <div class="card"><div class="card-label">TEMPO MÉDIO ATEND.</div><div class="card-value">${tma}</div></div>
+    </div>
+    <div class="card" style="margin-top:24px">
+      <h3 style="margin-bottom:16px">📋 Chamados por Setor</h3>
+      ${Object.keys(porSetor).length===0?'<p style="color:var(--cinza3)">Nenhum dado disponível</p>':
+        Object.entries(porSetor).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+          var pct=total>0?Math.round(e[1]/total*100):0;
+          return '<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>'+e[0]+'</span><span><b>'+e[1]+'</b> ('+pct+'%)</span></div><div style="background:#eee;border-radius:4px;height:8px"><div style="background:var(--verde);width:'+pct+'%;height:8px;border-radius:4px"></div></div></div>';
+        }).join('')
+      }
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-bottom:16px">📅 Chamados Recentes</h3>
+      <table class="tabela-chamados" style="width:100%">
+        <thead><tr><th>Nº</th><th>Assunto</th><th>Status</th><th>Prioridade</th><th>Data</th></tr></thead>
+        <tbody>${chamados.slice(0,10).map(function(c){return '<tr><td>'+c.numero+'</td><td>'+c.assunto+'</td><td>'+badgeStatus(c.status)+'</td><td>'+c.prioridade+'</td><td>'+fmtDataCurta(c.criadoEm)+'</td></tr>';}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--cinza3)">Nenhum chamado</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  });
+}
 function carregarFiltroSetorRel() {
   const setores = DB.get('setores') || [];
   const sel = document.getElementById('rel-setor');
