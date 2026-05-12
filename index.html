@@ -1834,20 +1834,28 @@ function atribuirAtendente() {
 
 function enviarMensagem() {
   const texto = document.getElementById('nova-msg').value.trim();
-  if (!texto || !ticketAtivo) return;
+  const inputArq = document.getElementById('msg-arquivos');
+  const files = inputArq ? Array.from(inputArq.files) : [];
+  if (!texto && files.length === 0) { toast('Digite uma mensagem ou anexe um arquivo.', 'error'); return; }
+  if (!ticketAtivo) return;
   const chamados = DB.get('chamados') || [];
   const idx = chamados.findIndex(c=>c.id===ticketAtivo);
   if (idx<0) return;
   const agora = new Date().toISOString();
-  chamados[idx].atualizadoEm = agora;
-  chamados[idx].mensagens = chamados[idx].mensagens || [];
-  chamados[idx].mensagens.push({
-    id: uid(), autorId: usuarioAtual.id, autorNome: usuarioAtual.nome, tipo:'mensagem',
-    texto, criadoEm: agora
-  });
-  DB.set('chamados', chamados);
-  toast('Mensagem enviada!', 'success');
-  abrirTicket(ticketAtivo);
+
+  function salvarMensagem(anexos) {
+    chamados[idx].atualizadoEm = agora;
+    chamados[idx].mensagens = chamados[idx].mensagens || [];
+    chamados[idx].mensagens.push({
+      id: uid(), autorId: usuarioAtual.id, autorNome: usuarioAtual.nome, tipo:'mensagem',
+      texto: texto, anexos: anexos || [], criadoEm: agora
+    });
+    DB.set('chamados', chamados);
+    toast('Mensagem enviada!', 'success');
+    document.getElementById('nova-msg').value = '';
+    if(inputArq){ inputArq.value=''; }
+    var prev=document.getElementById('msg-preview'); if(prev) prev.innerHTML='';
+    abrirTicket(ticketAtivo);
   // Notificar a outra parte
   var _usu2=DB.get('usuarios')||[];
   var _c2=chamados[idx];
@@ -1862,6 +1870,19 @@ function enviarMensagem() {
   } else {
     if(_sol2&&_sol2.email) enviarEmail(_sol2.email,_assunto2,_corpo2);
   }
+  } // fim salvarMensagem
+
+  if(files.length===0){ salvarMensagem([]); return; }
+  var anexos=[]; var done=0;
+  files.forEach(function(f,i){
+    var fr=new FileReader();
+    fr.onload=function(e){
+      anexos[i]={nome:f.name,tipo:f.type,data:e.target.result};
+      done++;
+      if(done===files.length) salvarMensagem(anexos);
+    };
+    fr.readAsDataURL(f);
+  });
 }
 
 // ===================== RELATÓRIOS =====================
