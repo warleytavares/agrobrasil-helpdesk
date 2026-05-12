@@ -1578,11 +1578,13 @@ function _renderPagina(pagina) {
 
 
 function getChamados(){
-  var c=getChamados();
+  var c=window._fbCache ? window._fbCache.chamados : null;
+  if(!c) return [];
   return Array.isArray(c)?c.filter(Boolean):Object.values(c).filter(Boolean);
 }
 function getUsuarios(){
-  var u=DB.get('usuarios')||[];
+  var u=window._fbCache ? window._fbCache.usuarios : null;
+  if(!u) return JSON.parse(localStorage.getItem('agro_hd_usuarios')||'[]');
   return Array.isArray(u)?u.filter(Boolean):Object.values(u).filter(Boolean);
 }
 function isAtendente(u){ return u && (u.perfil==='atendente'||u.perfil==='atendente_colaborador'||u.perfil==='admin'); }
