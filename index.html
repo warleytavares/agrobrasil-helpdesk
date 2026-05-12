@@ -1473,8 +1473,12 @@ DB.init();
 function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
-  const usuarios = DB.get('usuarios') || [];
-  const u = usuarios.find(x => x.email.toLowerCase() === email && x.senha === senha && x.status === 'ativo');
+  // Carregar do Firebase primeiro, depois validar
+  DB.ghLoad(function(){
+  const usuarios = (window._fbCache && window._fbCache.usuarios) || DB.get('usuarios') || [];
+  const u = Array.isArray(usuarios)
+    ? usuarios.find(x => x && x.email && x.email.toLowerCase() === email && x.senha === senha && x.status === 'ativo')
+    : Object.values(usuarios).find(x => x && x.email && x.email.toLowerCase() === email && x.senha === senha && x.status === 'ativo');
   if (!u) {
     document.getElementById('login-erro').textContent = '❌ E-mail ou senha incorretos.';
     document.getElementById('login-erro').style.display = 'block';
