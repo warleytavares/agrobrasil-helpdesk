@@ -1473,36 +1473,39 @@ DB.init();
 function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
-  // Carregar do Firebase primeiro, depois validar
-  DB.ghLoad(function(){
-  const usuarios = (window._fbCache && window._fbCache.usuarios) || DB.get('usuarios') || [];
-  const u = Array.isArray(usuarios)
-    ? usuarios.find(x => x && x.email && x.email.toLowerCase() === email && x.senha === senha && x.status === 'ativo')
-    : Object.values(usuarios).find(x => x && x.email && x.email.toLowerCase() === email && x.senha === senha && x.status === 'ativo');
-  if (!u) {
-    document.getElementById('login-erro').textContent = '❌ E-mail ou senha incorretos.';
+  if(!email || !senha){
+    document.getElementById('login-erro').textContent = '❌ Preencha e-mail e senha.';
     document.getElementById('login-erro').style.display = 'block';
     return;
   }
-  usuarioAtual = u;
-  document.getElementById('tela-login').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  DB.ghLoad(function(){
-  document.getElementById('user-avatar').textContent = u.nome.charAt(0).toUpperCase();
-  document.getElementById('user-nome').textContent = u.nome;
-  const perfis = { admin:'Administrador', atendente:'Atendente', usuario:'Usuário' };
-  document.getElementById('user-role').textContent = perfis[u.perfil] || u.perfil;
-  if (u.perfil === 'admin' || u.perfil === 'atendente') {
-    document.getElementById('nav-section-admin').style.display = '';
-    document.getElementById('nav-todos-chamados').style.display = 'flex';
-    document.getElementById('nav-relatorios').style.display = 'flex';
-    if (u.perfil === 'admin') {
-      document.getElementById('nav-usuarios').style.display = 'flex';
-      document.getElementById('nav-setores').style.display = 'flex';
+  // Mostrar loading
+  const btn = document.querySelector('#tela-login button[type=submit], #tela-login button');
+  if(btn){ btn.disabled=true; btn.textContent='Carregando...'; }
+  // Forçar busca no Firebase (ignorar cache)
+  window._fbCache = null;
+  fbDB.ref('usuarios').once('value', function(snap){
+    const usu = snap.val() || [];
+    const lista = Array.isArray(usu) ? usu : Object.values(usu);
+    const u = lista.find(x => x && x.email && x.email.toLowerCase()===email && x.senha===senha && x.status==='ativo');
+    if(btn){ btn.disabled=false; btn.textContent='Entrar no Sistema'; }
+    if(!u){
+      document.getElementById('login-erro').textContent = '❌ E-mail ou senha incorretos.';
+      document.getElementById('login-erro').style.display = 'block';
+      return;
     }
-  }
-  irPara('dashboard');
-  }); // fim ghLoad
+    // Login ok — carregar todos os dados
+    window._fbCache = { usuarios: lista };
+    document.getElementById('login-erro').style.display = 'none';
+    DB.ghLoad(function(){
+      usuarioAtual = u;
+      document.getElementById('tela-login').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      DB.listenChamados(function(){ if(typeof renderDashboard==='function') renderDashboard(); });
+      renderSidebar();
+      renderDashboard();
+      irPara('dashboard');
+    });
+  });
 }
 
 function sair() {
