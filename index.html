@@ -1624,7 +1624,7 @@ function renderMeusChamados() {
       <td>${fmtData(c.atualizadoEm||c.criadoEm)}</td>
       <td style="display:flex;gap:6px;align-items:center">
         <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();abrirTicket('${c.id}')">Ver →</button>
-        ${usuarioAtual&&usuarioAtual.perfil==='admin'?'<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer" onclick="event.stopPropagation();excluirChamado(''+c.id+'')">🗑️</button>':''}
+        ${(usuarioAtual&&usuarioAtual.perfil==='admin')?('<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer" onclick="event.stopPropagation();excluirChamado(\'' + c.id + '\')">🗑️</button>'):''}
       </td>
     </tr>
   `).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="icon">🎉</div><h3>Nenhum chamado encontrado</h3></div></td></tr>';
