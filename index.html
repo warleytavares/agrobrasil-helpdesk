@@ -1690,7 +1690,7 @@ function renderMeusChamados() {
   const busca = (document.getElementById('filtro-meus')||{value:''}).value.toLowerCase();
   const status = (document.getElementById('filtro-meus-status')||{value:''}).value;
   const chamados = getChamados().filter(c => {
-    var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'; if(!ok) return false;
+    var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'||isAtendente(usuarioAtual); if(!ok) return false;
     if (status && c.status !== status) return false;
     if (busca && !c.assunto.toLowerCase().includes(busca) && !c.numero.includes(busca)) return false;
     return true;
@@ -1823,9 +1823,12 @@ function abrirTicket(id) {
   const chamados = getChamados();
   const c = chamados.find(x=>x.id===id);
   if (!c) return;
-  // Segurança: usuário comum só pode ver seus próprios chamados
-  const podeVerTicket = usuarioAtual.perfil==='admin' || usuarioAtual.perfil==='atendente';
-  if (!podeVerTicket && c.usuarioId !== usuarioAtual.id) {
+  // Segurança: pode ver se for admin, atendente, quem abriu ou quem foi atribuído
+  const podeVerTicket = usuarioAtual.perfil==='admin'
+    || isAtendente(usuarioAtual)
+    || c.usuarioId === usuarioAtual.id
+    || c.atendenteId === usuarioAtual.id;
+  if (!podeVerTicket) {
     toast('Acesso negado: este chamado não pertence a você.', 'error');
     return;
   }
