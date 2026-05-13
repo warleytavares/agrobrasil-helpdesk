@@ -1746,7 +1746,9 @@ function renderMeusChamados() {
   const busca = (document.getElementById('filtro-meus')||{value:''}).value.toLowerCase();
   const status = (document.getElementById('filtro-meus-status')||{value:''}).value;
   const chamados = getChamados().filter(c => {
-    var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'||isAtendente(usuarioAtual); if(!ok) return false;
+    var _podeVerTodosMeus = usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+    var ok = _podeVerTodosMeus || c.usuarioId===usuarioAtual.id || c.atendenteId===usuarioAtual.id;
+    if(!ok) return false;
     if (status && c.status !== status) return false;
     if (busca && !c.assunto.toLowerCase().includes(busca) && !c.numero.includes(busca)) return false;
     return true;
