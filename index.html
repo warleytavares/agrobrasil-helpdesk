@@ -1371,6 +1371,11 @@ const DB = {
       if(val !== null && val !== undefined && !Array.isArray(val) && typeof val === 'object') {
         val = Object.values(val).filter(function(x){ return x !== null; });
       }
+      // Fallback localStorage para setores/areas se Firebase não carregou ainda
+      if((val===null||val===undefined||val.length===0) && (k==='setores'||k==='areas')) {
+        var loc=JSON.parse(localStorage.getItem('agro_hd_'+k)||'null');
+        if(loc && loc.length>0) return loc;
+      }
       return val;
     }
     return JSON.parse(localStorage.getItem('agro_hd_'+k)||'null');
