@@ -1469,6 +1469,25 @@ let ticketAtivo = null;
 DB.init();
 
 // ===================== LOGIN =====================
+function renderSidebar() {
+  if(!usuarioAtual) return;
+  // Atualizar inicial do avatar
+  var inicial = usuarioAtual.nome ? usuarioAtual.nome.charAt(0).toUpperCase() : 'U';
+  var elAv = document.getElementById('user-avatar');
+  if(elAv) elAv.textContent = inicial;
+  // Atualizar nome completo
+  var elNome = document.getElementById('user-nome');
+  if(elNome) elNome.textContent = usuarioAtual.nome || usuarioAtual.email;
+  // Atualizar label do perfil
+  var perfis = {'admin':'Administrador','atendente':'Atendente','colaborador':'Colaborador','atendente_colaborador':'Atendente / Colaborador'};
+  var elRole = document.getElementById('user-role');
+  if(elRole) elRole.textContent = perfis[usuarioAtual.perfil] || usuarioAtual.perfil;
+  // Mostrar menus de admin apenas para quem tem acesso
+  var admMenu = isAtendente(usuarioAtual);
+  var adminSections = document.querySelectorAll('.nav-section-admin, [data-admin]');
+  adminSections.forEach(function(el){ el.style.display = admMenu ? '' : 'none'; });
+}
+
 function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
