@@ -1834,7 +1834,12 @@ function renderTodosChamados() {
   const status = (document.getElementById('filtro-todos-status')||{value:''}).value;
   const setorId = (document.getElementById('filtro-todos-setor')||{value:''}).value;
   const prio = (document.getElementById('filtro-todos-prio')||{value:''}).value;
-  let chamados = (getChamados()).filter(c => {
+  // Filtrar por perfil: admin/atendente veem todos; outros só os seus
+  const _todosOsChamados = getChamados();
+  const _podeVerTodos = usuarioAtual.perfil==='admin' || usuarioAtual.perfil==='atendente';
+  let chamados = (_podeVerTodos ? _todosOsChamados : _todosOsChamados.filter(function(c){
+    return c && (c.usuarioId===usuarioAtual.id || c.atendenteId===usuarioAtual.id);
+  })).filter(c => {
     if (status && c.status !== status) return false;
     if (setorId && c.setorId !== setorId) return false;
     if (prio && c.prioridade !== prio) return false;
