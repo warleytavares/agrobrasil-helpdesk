@@ -1361,7 +1361,7 @@ const GH_KEYS = ['chamados','contador']; // chaves que ficam no GitHub
 
 const DB = {
   // Chaves que ficam no Firebase (compartilhadas entre todos os dispositivos)
-  _fbKeys: ['chamados','contador','usuarios'],
+  _fbKeys: ['chamados','contador','usuarios','setores','areas'],
 
   get: function(k) {
     // Firebase é assíncrono — retorna do cache em memória
@@ -1393,16 +1393,16 @@ const DB = {
     if(!window._fbCache) window._fbCache={};
     var loaded={chamados:false,contador:false,usuarios:false};
     function done(){ if(loaded.chamados&&loaded.contador&&loaded.usuarios&&callback) callback(); }
-    fbDB.ref('chamados').once('value',function(s){
-      var v=s.val();
-      window._fbCache.chamados=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
-      loaded.chamados=true; done();
-    });
-    fbDB.ref('contador').once('value',function(s){ window._fbCache.contador=s.val()||0; loaded.contador=true; done(); });
-    fbDB.ref('usuarios').once('value',function(s){
-      var v=s.val();
-      window._fbCache.usuarios=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
-      loaded.usuarios=true; done();
+    var keys=['chamados','contador','usuarios','setores','areas'];
+    var loaded2={chamados:false,contador:false,usuarios:false,setores:false,areas:false};
+    function done2(){ if(Object.values(loaded2).every(Boolean)&&callback) callback(); }
+    keys.forEach(function(key){
+      fbDB.ref(key).once('value',function(s){
+        var v=s.val();
+        if(key==='contador') window._fbCache[key]=v||0;
+        else window._fbCache[key]=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
+        loaded2[key]=true; done2();
+      });
     });
   },
 
@@ -1939,6 +1939,22 @@ function abrirTicket(id) {
     </div>
   `).join('') || '<div style="color:var(--cinza3);text-align:center;padding:20px">Nenhuma mensagem</div>';
   document.getElementById('nova-msg').value = '';
+  // Bloquear campo de mensagem se chamado encerrado
+  var encerrado = (c.status === 'Resolvido' || c.status === 'Cancelado');
+  var msgBox = document.getElementById('msg-send-box');
+  if(!msgBox){ msgBox = document.querySelector('.msg-send'); }
+  if(msgBox) msgBox.style.display = encerrado ? 'none' : '';
+  // Mostrar aviso se encerrado
+  var avisoEnc = document.getElementById('aviso-encerrado');
+  if(!avisoEnc){
+    avisoEnc = document.createElement('div');
+    avisoEnc.id = 'aviso-encerrado';
+    avisoEnc.style.cssText = 'background:#f8f0e0;border:1px solid #e0c060;border-radius:8px;padding:12px 16px;margin:12px 0;color:#7a5500;font-size:14px;text-align:center;';
+    avisoEnc.innerHTML = '🔒 Este chamado está encerrado e não aceita mais interações.';
+    if(msgBox && msgBox.parentNode) msgBox.parentNode.insertBefore(avisoEnc, msgBox);
+  }
+  avisoEnc.style.display = encerrado ? 'block' : 'none';
+
   // Botão excluir — só para admin
   var btnExcluirEl = document.getElementById('btn-excluir-chamado');
   if(!btnExcluirEl){
