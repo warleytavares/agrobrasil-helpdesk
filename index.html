@@ -2036,55 +2036,70 @@ function enviarMensagem() {
   const files = inputArq ? Array.from(inputArq.files) : [];
   if (!texto && files.length === 0) { toast('Digite uma mensagem ou anexe um arquivo.', 'error'); return; }
   if (!ticketAtivo) return;
-  var chamados = getChamados();
-  if(!Array.isArray(chamados)) chamados=Object.values(chamados).filter(Boolean);
-  var idx = chamados.findIndex(function(c){return c&&c.id===ticketAtivo;});
-  if (idx<0) return;
-  const agora = new Date().toISOString();
 
-  function salvarMensagem(anexos) {
-    chamados[idx].atualizadoEm = agora;
-    chamados[idx].mensagens = chamados[idx].mensagens || [];
-    chamados[idx].mensagens.push({
-      id: uid(), autorId: usuarioAtual.id, autorNome: usuarioAtual.nome, tipo:'mensagem',
-      texto: texto, anexos: anexos || [], criadoEm: agora
-    });
-    DB.set('chamados', chamados);
-    toast('Mensagem enviada!', 'success');
-    document.getElementById('nova-msg').value = '';
-    if(inputArq){ inputArq.value=''; }
-    var prev=document.getElementById('msg-preview'); if(prev) prev.innerHTML='';
-    abrirTicket(ticketAtivo);
-  // Notificar a outra parte
-  var _usu2=getUsuarios();
-  var _c2=chamados[idx];
-  var _sol2=_usu2.find(function(u){return u.id===_c2.usuarioId;});
-  var _atd2=_usu2.find(function(u){return u.id===_c2.atendenteId;});
-  var _link2='https://warleytavares.github.io/agrobrasil-helpdesk/';
-  var _corpo2='Nova mensagem no chamado #'+_c2.numero+'\nAssunto: '+_c2.assunto+'\n\nMensagem de '+usuarioAtual.nome+':\n'+texto+'\n\nAcesse: '+_link2;
-  var _assunto2='[HelpDesk] Nova mensagem - Chamado #'+_c2.numero;
-  // Se quem enviou é o solicitante, notifica o atendente e vice-versa
-  if(usuarioAtual.id===_c2.usuarioId){
-    if(_atd2&&_atd2.email) enviarEmail(_atd2.email,_assunto2,_corpo2);
-  } else {
-    if(_sol2&&_sol2.email) enviarEmail(_sol2.email,_assunto2,_corpo2);
-  }
-  } // fim salvarMensagem
+  // Sempre recarregar do Firebase antes de salvar
+  window._fbCache = null;
+  DB.ghLoad(function(){
+    var chamados = getChamados();
+    var idx = chamados.findIndex(function(c){ return c && c.id === ticketAtivo; });
+    if (idx < 0) { toast('Chamado não encontrado. Tente reabrir.', 'error'); return; }
+    const agora = new Date().toISOString();
 
-  if(files.length===0){ salvarMensagem([]); return; }
-  var anexos=[]; var done=0;
-  files.forEach(function(f,i){
-    var fr=new FileReader();
-    fr.onload=function(e){
-      anexos[i]={nome:f.name,tipo:f.type,data:e.target.result};
-      done++;
-      if(done===files.length) salvarMensagem(anexos);
-    };
-    fr.readAsDataURL(f);
+    function salvarComAnexos(anexos) {
+      chamados[idx].atualizadoEm = agora;
+      chamados[idx].mensagens = chamados[idx].mensagens || [];
+      chamados[idx].mensagens.push({
+        id: uid(),
+        autorId: usuarioAtual.id,
+        autorNome: usuarioAtual.nome,
+        tipo: 'mensagem',
+        texto: texto,
+        anexos: anexos || [],
+        criadoEm: agora
+      });
+      DB.set('chamados', chamados);
+      toast('Mensagem enviada!', 'success');
+      document.getElementById('nova-msg').value = '';
+      if(inputArq) inputArq.value = '';
+      var prev = document.getElementById('msg-preview');
+      if(prev) prev.innerHTML = '';
+      // Notificar a outra parte por e-mail
+      var _usu = getUsuarios();
+      var _c = chamados[idx];
+      var _sol = _usu.find(function(u){ return u && u.id === _c.usuarioId; });
+      var _atd = _usu.find(function(u){ return u && u.id === _c.atendenteId; });
+      var _link = 'https://warleytavares.github.io/agrobrasil-helpdesk/';
+      var _corpo = 'Nova mensagem no chamado #'+_c.numero+'\nAssunto: '+_c.assunto+'\n\nMensagem de '+usuarioAtual.nome+':\n'+texto+'\n\nAcesse: '+_link;
+      var _assunto = '[HelpDesk] Nova mensagem no chamado #'+_c.numero;
+      if(usuarioAtual.id === _c.usuarioId){
+        if(_atd && _atd.email) enviarEmail(_atd.email, _assunto, _corpo);
+      } else {
+        if(_sol && _sol.email) enviarEmail(_sol.email, _assunto, _corpo);
+      }
+      // Reabrir ticket para atualizar a view
+      abrirTicket(ticketAtivo);
+    }
+
+    // Ler arquivos como base64
+    if(files.length === 0){
+      salvarComAnexos([]);
+    } else {
+      var anexos = [];
+      var done = 0;
+      files.forEach(function(f, i){
+        var fr = new FileReader();
+        fr.onload = function(e){
+          anexos[i] = { nome: f.name, tipo: f.type, data: e.target.result };
+          done++;
+          if(done === files.length) salvarComAnexos(anexos);
+        };
+        fr.onerror = function(){ done++; if(done===files.length) salvarComAnexos(anexos.filter(Boolean)); };
+        fr.readAsDataURL(f);
+      });
+    }
   });
 }
 
-// ===================== RELATÓRIOS =====================
 function renderRelatorios() {
   DB.ghLoad(function(){
     var chamados = getChamados();
