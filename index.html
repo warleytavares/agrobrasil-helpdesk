@@ -1194,7 +1194,6 @@ const fbDB = firebase.database();
           <button class="btn btn-azul btn-sm" onclick="alterarStatus('Em andamento')">⚙️ Em andamento</button>
           <button class="btn btn-primary btn-sm" onclick="alterarStatus('Resolvido')">✅ Resolvido</button>
           <button class="btn btn-outline btn-sm" onclick="alterarStatus('Cancelado')">❌ Cancelado</button>
-          ${(usuarioAtual&&usuarioAtual.perfil==='admin')?'<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;margin-left:12px" onclick="excluirChamado(ticketAtivo)">🗑️ Excluir Chamado</button>':''}
         </div>
       </div>
       <div class="form-group" id="atendente-box" style="">
@@ -1915,6 +1914,25 @@ function abrirTicket(id) {
     </div>
   `).join('') || '<div style="color:var(--cinza3);text-align:center;padding:20px">Nenhuma mensagem</div>';
   document.getElementById('nova-msg').value = '';
+  // Botão excluir — só para admin
+  var btnExcluirEl = document.getElementById('btn-excluir-chamado');
+  if(!btnExcluirEl){
+    btnExcluirEl = document.createElement('button');
+    btnExcluirEl.id = 'btn-excluir-chamado';
+    btnExcluirEl.className = 'btn btn-sm';
+    btnExcluirEl.style.cssText = 'background:#c0392b;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;margin-left:12px';
+    btnExcluirEl.innerHTML = '🗑️ Excluir Chamado';
+    btnExcluirEl.onclick = function(){ excluirChamado(ticketAtivo); };
+    var statusDiv = document.querySelector('#modal-ticket .status-botoes, #modal-ticket [class*="status"]');
+    if(!statusDiv){
+      // fallback: adicionar após botão cancelado
+      var btnCancelar = document.querySelector('#modal-ticket button[onclick*="Cancelado"]');
+      if(btnCancelar && btnCancelar.parentNode) btnCancelar.parentNode.appendChild(btnExcluirEl);
+    } else {
+      statusDiv.appendChild(btnExcluirEl);
+    }
+  }
+  btnExcluirEl.style.display = (usuarioAtual&&usuarioAtual.perfil==='admin') ? 'inline-block' : 'none';
   abrirModal('modal-ticket');
   // Scroll para última mensagem
   setTimeout(() => {
