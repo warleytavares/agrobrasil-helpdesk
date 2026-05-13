@@ -1194,7 +1194,7 @@ const fbDB = firebase.database();
           <button class="btn btn-azul btn-sm" onclick="alterarStatus('Em andamento')">⚙️ Em andamento</button>
           <button class="btn btn-primary btn-sm" onclick="alterarStatus('Resolvido')">✅ Resolvido</button>
           <button class="btn btn-outline btn-sm" onclick="alterarStatus('Cancelado')">❌ Cancelado</button>
-          ${(usuarioAtual&&usuarioAtual.perfil==='admin')?`<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;margin-left:12px" onclick="excluirChamado(ticketAtivo)">🗑️ Excluir Chamado</button>`:''}
+          ${(usuarioAtual&&usuarioAtual.perfil==='admin')?'<button class="btn btn-sm" style="background:#c0392b;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;margin-left:12px" onclick="excluirChamado(ticketAtivo)">🗑️ Excluir Chamado</button>':''}
         </div>
       </div>
       <div class="form-group" id="atendente-box" style="">
@@ -1481,7 +1481,9 @@ function fazerLogin() {
   const btn = document.querySelector('#tela-login button[type=submit], #tela-login button');
   if(btn){ btn.disabled=true; btn.textContent='Carregando...'; }
   // Forçar busca no Firebase (ignorar cache)
+  // Zerar cache completamente para não usar dados de sessão anterior
   window._fbCache = null;
+  usuarioAtual = null;
   fbDB.ref('usuarios').once('value', function(snap){
     const usu = snap.val() || [];
     const lista = Array.isArray(usu) ? usu : Object.values(usu);
