@@ -793,17 +793,17 @@ const fbDB = firebase.database();
       </div>
 
       <div class="nav-section" id="nav-section-admin" style="">Administração</div>
-      <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" class="nav-item admin-only" style="display:none">
+      <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" style="display:flex">
         <span class="icon">📋</span> Todos os Chamados
         <span class="badge" id="badge-todos" style="">3</span>
       </div>
-      <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios" class="nav-item admin-only" style="display:none" class="nav-item admin-only" style="display:none">
+      <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios" style="display:none">
         <span class="icon">📈</span> Relatórios
       </div>
-      <div class="nav-item" onclick="irPara('usuarios')" id="nav-usuarios" class="nav-item admin-somente" style="display:none" class="nav-item admin-somente" style="display:none">
+      <div class="nav-item" onclick="irPara('usuarios')" id="nav-usuarios" style="display:none">
         <span class="icon">👥</span> Usuários
       </div>
-      <div class="nav-item" onclick="irPara('setores')" id="nav-setores" class="nav-item admin-somente" style="display:none" class="nav-item admin-somente" style="display:none">
+      <div class="nav-item" onclick="irPara('setores')" id="nav-setores" style="display:none">
         <span class="icon">🏢</span> Setores &amp; Áreas
       </div>
     </nav>
@@ -1470,33 +1470,29 @@ DB.init();
 // ===================== LOGIN =====================
 function renderSidebar() {
   if(!usuarioAtual) return;
-  // Controle de menus por perfil
-  var soAdmin = usuarioAtual.perfil==='admin';
-  var adminOuAtend = usuarioAtual.perfil==='admin' || usuarioAtual.perfil==='atendente';
-
-  // Menus só para admin OU atendente (Todos os Chamados, Relatórios)
-  document.querySelectorAll('.admin-only').forEach(function(el){
-    el.style.display = adminOuAtend ? 'flex' : 'none';
-  });
-  // Menus só para admin (Usuários, Setores & Áreas)
-  document.querySelectorAll('.admin-somente').forEach(function(el){
-    el.style.display = soAdmin ? 'flex' : 'none';
-  });
   // Atualizar inicial do avatar
-  var inicial = usuarioAtual.nome ? usuarioAtual.nome.charAt(0).toUpperCase() : 'U';
-  var elAv = document.getElementById('user-avatar');
-  if(elAv) elAv.textContent = inicial;
-  // Atualizar nome completo
-  var elNome = document.getElementById('user-nome');
-  if(elNome) elNome.textContent = usuarioAtual.nome || usuarioAtual.email;
-  // Atualizar label do perfil
-  var perfis = {'admin':'Administrador','atendente':'Atendente','colaborador':'Colaborador','atendente_colaborador':'Atendente / Colaborador'};
-  var elRole = document.getElementById('user-role');
-  if(elRole) elRole.textContent = perfis[usuarioAtual.perfil] || usuarioAtual.perfil;
-  // Mostrar menus de admin apenas para quem tem acesso
-  var admMenu = isAtendente(usuarioAtual);
-  var adminSections = document.querySelectorAll('.nav-section-admin, [data-admin]');
-  adminSections.forEach(function(el){ el.style.display = admMenu ? '' : 'none'; });
+  var av=document.getElementById('user-avatar');
+  if(av) av.textContent=usuarioAtual.nome?usuarioAtual.nome.charAt(0).toUpperCase():'U';
+  // Atualizar nome
+  var nm=document.getElementById('user-nome');
+  if(nm) nm.textContent=usuarioAtual.nome||usuarioAtual.email;
+  // Atualizar perfil
+  var perfis={'admin':'Administrador','atendente':'Atendente','colaborador':'Colaborador','atendente_colaborador':'Atendente / Colaborador'};
+  var rl=document.getElementById('user-role');
+  if(rl) rl.textContent=perfis[usuarioAtual.perfil]||usuarioAtual.perfil;
+  // Controlar visibilidade dos menus por perfil
+  var soAdmin=usuarioAtual.perfil==='admin';
+  var adminOuAtend=usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+  // Todos os Chamados e Relatórios: admin e atendente
+  var elTodos=document.getElementById('nav-todos-chamados');
+  var elRel=document.getElementById('nav-relatorios');
+  if(elTodos) elTodos.style.display=adminOuAtend?'flex':'none';
+  if(elRel) elRel.style.display=adminOuAtend?'flex':'none';
+  // Usuários e Setores: só admin
+  var elUsu=document.getElementById('nav-usuarios');
+  var elSet=document.getElementById('nav-setores');
+  if(elUsu) elUsu.style.display=soAdmin?'flex':'none';
+  if(elSet) elSet.style.display=soAdmin?'flex':'none';
 }
 
 function fazerLogin() {
