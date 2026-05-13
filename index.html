@@ -793,17 +793,17 @@ const fbDB = firebase.database();
       </div>
 
       <div class="nav-section" id="nav-section-admin" style="">Administração</div>
-      <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" style="display: flex;">
+      <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" class="nav-item admin-only" style="display:none">
         <span class="icon">📋</span> Todos os Chamados
         <span class="badge" id="badge-todos" style="">3</span>
       </div>
-      <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios" style="display: flex;">
+      <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios" class="nav-item admin-only" style="display:none" class="nav-item admin-only" style="display:none">
         <span class="icon">📈</span> Relatórios
       </div>
-      <div class="nav-item" onclick="irPara('usuarios')" id="nav-usuarios" style="display: flex;">
+      <div class="nav-item" onclick="irPara('usuarios')" id="nav-usuarios" class="nav-item admin-somente" style="display:none" class="nav-item admin-somente" style="display:none">
         <span class="icon">👥</span> Usuários
       </div>
-      <div class="nav-item" onclick="irPara('setores')" id="nav-setores" style="display: flex;">
+      <div class="nav-item" onclick="irPara('setores')" id="nav-setores" class="nav-item admin-somente" style="display:none" class="nav-item admin-somente" style="display:none">
         <span class="icon">🏢</span> Setores &amp; Áreas
       </div>
     </nav>
@@ -1470,6 +1470,18 @@ DB.init();
 // ===================== LOGIN =====================
 function renderSidebar() {
   if(!usuarioAtual) return;
+  // Controle de menus por perfil
+  var soAdmin = usuarioAtual.perfil==='admin';
+  var adminOuAtend = usuarioAtual.perfil==='admin' || usuarioAtual.perfil==='atendente';
+
+  // Menus só para admin OU atendente (Todos os Chamados, Relatórios)
+  document.querySelectorAll('.admin-only').forEach(function(el){
+    el.style.display = adminOuAtend ? 'flex' : 'none';
+  });
+  // Menus só para admin (Usuários, Setores & Áreas)
+  document.querySelectorAll('.admin-somente').forEach(function(el){
+    el.style.display = soAdmin ? 'flex' : 'none';
+  });
   // Atualizar inicial do avatar
   var inicial = usuarioAtual.nome ? usuarioAtual.nome.charAt(0).toUpperCase() : 'U';
   var elAv = document.getElementById('user-avatar');
@@ -1548,6 +1560,14 @@ function irPara(pagina) {
   _renderPagina(pagina);
 }
 function _renderPagina(pagina) {
+  var _soAdmin2 = usuarioAtual && usuarioAtual.perfil==='admin';
+  var _adminOuAtend2 = usuarioAtual && (usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente');
+  if(['usuarios','setores'].includes(pagina) && !_soAdmin2) {
+    toast('Acesso restrito a administradores.','error'); return;
+  }
+  if(['todos-chamados','relatorios'].includes(pagina) && !_adminOuAtend2) {
+    toast('Acesso restrito a administradores e atendentes.','error'); return;
+  }
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('page-'+pagina);
