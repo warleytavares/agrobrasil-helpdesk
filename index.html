@@ -1568,7 +1568,7 @@ function _renderPagina(pagina) {
   document.getElementById('page-breadcrumb').textContent = 'AgroBrasil › ' + t[1];
   // Segurança: bloqueia usuário comum de acessar páginas restritas
   const paginasRestritas = ['todos-chamados','relatorios','usuarios','setores'];
-  const isAdminNav = usuarioAtual && isAtendente(usuarioAtual);
+  const isAdminNav = usuarioAtual && (usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente');
   if (paginasRestritas.includes(pagina) && !isAdminNav) {
     toast('Acesso restrito a administradores e atendentes.', 'error');
     irPara('dashboard');
@@ -1866,10 +1866,12 @@ function abrirTicket(id) {
   const c = chamados.find(x=>x.id===id);
   if (!c) return;
   // Segurança: pode ver se for admin, atendente, quem abriu ou quem foi atribuído
-  const podeVerTicket = usuarioAtual.perfil==='admin'
-    || isAtendente(usuarioAtual)
-    || c.usuarioId === usuarioAtual.id
-    || c.atendenteId === usuarioAtual.id;
+  // Regras de acesso ao chamado:
+  // admin / atendente puro → veem todos
+  // atendente_colaborador / colaborador → só os que abriram ou foram atribuídos
+  const isAdminOuAtendente = usuarioAtual.perfil==='admin' || usuarioAtual.perfil==='atendente';
+  const isSeuChamado = c.usuarioId === usuarioAtual.id || c.atendenteId === usuarioAtual.id;
+  const podeVerTicket = isAdminOuAtendente || isSeuChamado;
   if (!podeVerTicket) {
     toast('Acesso negado: este chamado não pertence a você.', 'error');
     return;
