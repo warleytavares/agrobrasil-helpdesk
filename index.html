@@ -789,7 +789,7 @@ const fbDB = firebase.database();
       </div>
       <div class="nav-item" onclick="irPara('meus-chamados')" id="nav-meus-chamados">
         <span class="icon">🎫</span> Meus Chamados
-        <span class="badge" id="badge-meus" style="">3</span>
+        <span class="badge" id="badge-meus" style=""></span>
       </div>
       <div class="nav-item active" onclick="irPara('novo-chamado')" id="nav-novo-chamado">
         <span class="icon">➕</span> Novo Chamado
@@ -798,7 +798,7 @@ const fbDB = firebase.database();
       <div class="nav-section" id="nav-section-admin" style="">Administração</div>
       <div class="nav-item" onclick="irPara('todos-chamados')" id="nav-todos-chamados" style="display:flex">
         <span class="icon">📋</span> Todos os Chamados
-        <span class="badge" id="badge-todos" style="">3</span>
+        <span class="badge" id="badge-todos" style=""></span>
       </div>
       <div class="nav-item" onclick="irPara('relatorios')" id="nav-relatorios">
         <span class="icon">📈</span> Relatórios
@@ -1496,7 +1496,14 @@ function renderSidebar() {
   var elSet=document.getElementById('nav-setores');
   if(elUsu) elUsu.style.display=soAdmin?'flex':'none';
   if(elSet) elSet.style.display=soAdmin?'flex':'none';
-  // Atualizar badges dos menus
+  // Atualizar badges com valores reais
+  var _allCh=getChamados();
+  var _pVT=usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+  var _mCh=_pVT?_allCh:_allCh.filter(function(c){return c&&(c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id);});
+  var bdM=document.getElementById('badge-meus');
+  var bdT=document.getElementById('badge-todos');
+  if(bdM) bdM.textContent=_mCh.length>0?_mCh.length:'';
+  if(bdT) bdT.textContent=_pVT&&_allCh.length>0?_allCh.length:'';
   var _ch=getChamados();
   var _podeVerTodos2=usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
   var _meusCh=_podeVerTodos2?_ch:_ch.filter(function(c){return c&&(c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id);});
