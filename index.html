@@ -687,6 +687,9 @@ tbody td { padding: 12px 16px; font-size: 13px; }
 .aviso-box.info { background: var(--azul-light); border-left: 3px solid var(--azul); color: var(--azul2); }
 .aviso-box.success { background: var(--verde-light); border-left: 3px solid var(--verde); color: var(--verde); }
 .aviso-box.warning { background: var(--amarelo-light); border-left: 3px solid var(--amarelo); color: #856404; }
+#app[style*="display: none"] { visibility: hidden; }
+#app[style*="display: none"] .sidebar { display: none !important; }
+#tela-login { z-index: 9999; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
