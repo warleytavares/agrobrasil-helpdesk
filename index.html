@@ -1396,7 +1396,7 @@ const DB = {
   // Carrega dados do Firebase e chama callback quando pronto
   ghLoad: function(callback) {
     if(!window._fbCache) window._fbCache={};
-    var loaded={chamados:false,contador:false,usuarios:false};
+    var loaded={chamados:false,contador:false,usuarios:false,setores:false,areas:false};
     function done(){ if(loaded.chamados&&loaded.contador&&loaded.usuarios&&callback) callback(); }
     var keys=['chamados','contador','usuarios','setores','areas'];
     var loaded2={chamados:false,contador:false,usuarios:false,setores:false,areas:false};
@@ -1430,6 +1430,17 @@ const DB = {
     localStorage.removeItem('agro_hd_chamados');
     localStorage.removeItem('agro_hd_contador');
     // Setores e áreas ficam no localStorage
+    // Migrar setores e areas para Firebase se ainda não migrou
+    var _setLocal=JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
+    var _areaLocal=JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
+    if(_setLocal.length>0){
+      fbDB.ref('setores').once('value',function(sn){
+        if(!sn.val()||Object.keys(sn.val()||{}).length===0){
+          fbDB.ref('setores').set(_setLocal);
+          fbDB.ref('areas').set(_areaLocal);
+        }
+      });
+    }
     if(!localStorage.getItem('agro_hd_iniciado')) {
       localStorage.setItem('agro_hd_setores', JSON.stringify([
         { id:'s1', nome:'Tecnologia da Informação', sigla:'TI', email:'ti@agrobrasil.com.br', responsavel:'', criadoEm: new Date().toISOString() },
@@ -1651,8 +1662,8 @@ function fmtDataCurta(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('pt-BR');
 }
-function setorNome(id) { const s = (DB.get('setores')||[]).find(x=>x.id===id); return s?s.nome:'—'; }
-function areaNome(id) { const a = (DB.get('areas')||[]).find(x=>x.id===id); return a?a.nome:'—'; }
+function setorNome(id) { const s = (((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[]).find(x=>x.id===id); return s?s.nome:'—'; }
+function areaNome(id) { const a = (((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).find(x=>x.id===id); return a?a.nome:'—'; }
 function usuarioNome(id) { const u = getUsuarios().find(x=>x.id===id); return u?u.nome:'—'; }
 function badgeStatus(s) {
   const m = {'Aberto':'badge-aberto','Em andamento':'badge-andamento','Resolvido':'badge-resolvido','Cancelado':'badge-cancelado'};
@@ -1778,7 +1789,7 @@ function renderMeusChamados() {
 
 // ===================== NOVO CHAMADO =====================
 function carregarSetoresNC() {
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   const sel = document.getElementById('nc-setor');
   sel.innerHTML = '<option value="">Selecione o setor...</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
   document.getElementById('nc-area').innerHTML = '<option value="">Selecione o setor primeiro...</option>';
@@ -1786,7 +1797,7 @@ function carregarSetoresNC() {
 
 function carregarAreasNC() {
   const setorId = document.getElementById('nc-setor').value;
-  const areas = (DB.get('areas')||[]).filter(a=>a.setorId===setorId);
+  const areas = (((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).filter(a=>a.setorId===setorId);
   document.getElementById('nc-area').innerHTML = areas.length
     ? '<option value="">Selecione a área...</option>' + areas.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('')
     : '<option value="">Nenhuma área cadastrada para este setor</option>';
@@ -1833,7 +1844,7 @@ function abrirChamado() {
   // Email atendente
   if(atAuto&&atAuto.email)enviarEmail(atAuto.email,'[HelpDesk] Chamado atribuído - '+chamado.numero,'Olá '+atAuto.nome+',\n\nNovo chamado atribuído para você!\n\nNúmero: '+chamado.numero+'\nAssunto: '+chamado.assunto+'\nSolicitante: '+usuarioAtual.nome+'\nPrioridade: '+chamado.prioridade+'\n\nAtender em: https://warleytavares.github.io/agrobrasil-helpdesk/');
   // Simula notificação por e-mail
-  const setor = (DB.get('setores')||[]).find(s=>s.id===setorId);
+  const setor = (((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[]).find(s=>s.id===setorId);
   if (setor && setor.email) {
     console.log(`📧 NOTIFICAÇÃO: E-mail enviado para ${setor.email} sobre novo chamado ${chamado.numero}`);
   }
@@ -1847,7 +1858,7 @@ function abrirChamado() {
 
 // ===================== TODOS OS CHAMADOS =====================
 function carregarFiltroSetor() {
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   const sel = document.getElementById('filtro-todos-setor');
   if (sel) sel.innerHTML = '<option value="">Todos os setores</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
 }
@@ -2178,7 +2189,7 @@ function renderRelatorios() {
   });
 }
 function carregarFiltroSetorRel() {
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   const sel = document.getElementById('rel-setor');
   if (sel) sel.innerHTML = '<option value="">Todos</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
 }
@@ -2215,7 +2226,7 @@ function renderRelatorio() {
     {label:'Urgentes', value:chamados.filter(c=>c.prioridade==='Urgente').length, sub:'prioridade máxima', cls:'vermelho'},
   ].map(c=>`<div class="stat-card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
   // Por setor
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   const porSetor = setores.map(s=>({nome:s.nome, count:chamados.filter(c=>c.setorId===s.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,8);
   const maxS = Math.max(...porSetor.map(x=>x.count),1);
   document.getElementById('chart-setores').innerHTML = porSetor.length ? porSetor.map(x=>`
@@ -2225,7 +2236,7 @@ function renderRelatorio() {
     </div>
   `).join('') : '<div style="color:var(--cinza3);text-align:center;padding:20px">Sem dados</div>';
   // Por área
-  const areas = DB.get('areas') || [];
+  const areas = ((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]')) || [];
   const porArea = areas.map(a=>({nome:a.nome, count:chamados.filter(c=>c.areaId===a.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,8);
   const maxA = Math.max(...porArea.map(x=>x.count),1);
   document.getElementById('chart-areas').innerHTML = porArea.length ? porArea.map(x=>`
@@ -2289,7 +2300,7 @@ function exportarCSV() {
 // ===================== USUÁRIOS =====================
 function renderUsuarios() {
   const usuarios = getUsuarios();
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   document.getElementById('lista-usuarios').innerHTML = usuarios.map(u=>`
     <div class="settings-item">
       <div style="display:flex;align-items:center;gap:12px">
@@ -2308,7 +2319,7 @@ function renderUsuarios() {
 }
 
 function abrirModalUsuario(id) {
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   document.getElementById('usuario-setor').innerHTML = '<option value="">Selecione...</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
   document.getElementById('usuario-id').value = '';
   document.getElementById('usuario-nome').value = '';
@@ -2325,7 +2336,7 @@ function abrirModalUsuario(id) {
 function editarUsuario(id) {
   const u = getUsuarios().find(x=>x.id===id);
   if (!u) return;
-  const setores = DB.get('setores') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
   document.getElementById('usuario-setor').innerHTML = '<option value="">Selecione...</option>' + setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
   document.getElementById('usuario-id').value = u.id;
   document.getElementById('usuario-nome').value = u.nome;
@@ -2380,8 +2391,8 @@ function excluirUsuario(id) {
 
 // ===================== SETORES & ÁREAS =====================
 function renderSetores() {
-  const setores = DB.get('setores') || [];
-  const areas = DB.get('areas') || [];
+  const setores = ((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]')) || [];
+  const areas = ((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]')) || [];
   document.getElementById('lista-setores').innerHTML = setores.map(s=>`
     <div class="settings-item">
       <div class="info">
@@ -2417,7 +2428,7 @@ function abrirModalSetor() {
   abrirModal('modal-setor');
 }
 function editarSetor(id) {
-  const s = (DB.get('setores')||[]).find(x=>x.id===id); if(!s)return;
+  const s = (((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[]).find(x=>x.id===id); if(!s)return;
   document.getElementById('setor-id').value=s.id; document.getElementById('setor-nome').value=s.nome;
   document.getElementById('setor-sigla').value=s.sigla||''; document.getElementById('setor-email').value=s.email||'';
   document.getElementById('setor-responsavel').value=s.responsavel||'';
@@ -2429,29 +2440,29 @@ function salvarSetor() {
   const nome=document.getElementById('setor-nome').value.trim();
   if(!nome){toast('Nome obrigatório!','error');return;}
   const obj={nome,sigla:document.getElementById('setor-sigla').value.trim().toUpperCase(),email:document.getElementById('setor-email').value.trim(),responsavel:document.getElementById('setor-responsavel').value.trim()};
-  const setores=DB.get('setores')||[];
+  const setores=(window._fbCache&&window._fbCache.setores)||((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[];
   if(!id){setores.push({id:uid(),...obj,criadoEm:new Date().toISOString()});toast('Setor criado!','success');}
   else{const idx=setores.findIndex(s=>s.id===id);if(idx>=0)setores[idx]={...setores[idx],...obj};toast('Setor atualizado!','success');}
-  DB.set('setores',setores);fecharModal('modal-setor');renderSetores();
+  DB.set('setores',setores); if(window._fbCache) window._fbCache.setores=setores; fbDB.ref('setores').set(setores);fecharModal('modal-setor');renderSetores();
 }
 function excluirSetor(id) {
-  const areas=(DB.get('areas')||[]).filter(a=>a.setorId===id);
+  const areas=(((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).filter(a=>a.setorId===id);
   if(areas.length>0){toast('Remova as áreas deste setor primeiro!','error');return;}
   if(!confirm('Excluir este setor?'))return;
-  DB.set('setores',(DB.get('setores')||[]).filter(s=>s.id!==id));
+  DB.set('setores',(((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[]).filter(s=>s.id!==id));
   toast('Setor excluído.','warning');renderSetores();
 }
 
 function abrirModalArea() {
-  const setores=DB.get('setores')||[];
+  const setores=(window._fbCache&&window._fbCache.setores)||((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[];
   document.getElementById('area-setor').innerHTML='<option value="">Selecione o setor...</option>'+setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
   document.getElementById('area-id').value='';document.getElementById('area-nome').value='';document.getElementById('area-descricao').value='';
   document.getElementById('modal-area-titulo').textContent='Nova Área / Categoria';
   abrirModal('modal-area');
 }
 function editarArea(id) {
-  const a=(DB.get('areas')||[]).find(x=>x.id===id);if(!a)return;
-  const setores=DB.get('setores')||[];
+  const a=(((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).find(x=>x.id===id);if(!a)return;
+  const setores=(window._fbCache&&window._fbCache.setores)||((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[];
   document.getElementById('area-setor').innerHTML='<option value="">Selecione...</option>'+setores.map(s=>`<option value="${s.id}">${s.nome}</option>`).join('');
   document.getElementById('area-id').value=a.id;document.getElementById('area-setor').value=a.setorId;
   document.getElementById('area-nome').value=a.nome;document.getElementById('area-descricao').value=a.descricao||'';
@@ -2464,14 +2475,14 @@ function salvarArea() {
   const nome=document.getElementById('area-nome').value.trim();
   if(!setorId||!nome){toast('Setor e nome são obrigatórios!','error');return;}
   const obj={setorId,nome,descricao:document.getElementById('area-descricao').value.trim()};
-  const areas=DB.get('areas')||[];
+  const areas=(window._fbCache&&window._fbCache.areas)||((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[];
   if(!id){areas.push({id:uid(),...obj,criadoEm:new Date().toISOString()});toast('Área criada!','success');}
   else{const idx=areas.findIndex(a=>a.id===id);if(idx>=0)areas[idx]={...areas[idx],...obj};toast('Área atualizada!','success');}
-  DB.set('areas',areas);fecharModal('modal-area');renderSetores();
+  DB.set('areas',areas); if(window._fbCache) window._fbCache.areas=areas; fbDB.ref('areas').set(areas);fecharModal('modal-area');renderSetores();
 }
 function excluirArea(id) {
   if(!confirm('Excluir esta área?'))return;
-  DB.set('areas',(DB.get('areas')||[]).filter(a=>a.id!==id));
+  DB.set('areas',(((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).filter(a=>a.id!==id));
   toast('Área excluída.','warning');renderSetores();
 }
 
