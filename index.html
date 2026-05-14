@@ -1546,7 +1546,10 @@ function fazerLogin() {
       usuarioAtual = u;
       document.getElementById('tela-login').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
-      DB.listenChamados(function(){ if(typeof renderDashboard==='function') renderDashboard(); });
+      DB.listenChamados(function(){
+        if(typeof renderDashboard==='function') renderDashboard();
+        if(typeof renderSidebar==='function') renderSidebar();
+      });
       renderSidebar();
       renderDashboard();
       irPara('dashboard');
