@@ -1,28 +1,8 @@
-<html lang="pt-BR"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroBrasil HelpDesk</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&amp;family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&amp;display=swap" rel="stylesheet">
-<style>
-:root {
-  --verde: #1A5C2A;
-  --verde2: #2a7a3b;
-  --verde-light: #e8f5ec;
-  --azul: #1F3864;
-  --azul2: #2d4f8e;
-  --azul-light: #eef2fa;
-  --amarelo: #F4A83A;
-  --amarelo-light: #fff8ee;
-  --vermelho: #c0392b;
-  --cinza: #f5f6f8;
-  --cinza2: #e8eaed;
-  --cinza3: #9aa0a9;
-  --preto: #1a1d23;
-  --branco: #ffffff;
-  --shadow: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-  --radius: 12px;
-  --radius-sm: 8px;
+function areaNome(id) {
+  if(!id) return '-';
+  var lista=(window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
+  var a=lista.find(function(x){return x&&x.id===id;});
+  return a?a.nome:id;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1672,12 +1652,11 @@ function fmtDataCurta(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('pt-BR');
 }
-function setorNome(id) { const s = (((window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]'))||[]).find(x=>x.id===id); return s?s.nome:'—'; }
-function areaNome(id) { const a = (((window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]'))||[]).find(x=>x.id===id); return a?a.nome:'—'; }
-function usuarioNome(id) { const u = getUsuarios().find(x=>x.id===id); return u?u.nome:'—'; }
-function badgeStatus(s) {
-  const m = {'Aberto':'badge-aberto','Em andamento':'badge-andamento','Resolvido':'badge-resolvido','Cancelado':'badge-cancelado'};
-  return `<span class="badge ${m[s]||''}">${s}</span>`;
+function setorNome(id) {
+  if(!id) return '-';
+  var lista=(window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
+  var s=lista.find(function(x){return x&&x.id===id;});
+  return s?s.nome:id;
 }
 function badgePrio(p) {
   const m = {'Urgente':'badge-urgente','Alta':'badge-alta','Média':'badge-media','Baixa':'badge-baixa'};
@@ -1822,10 +1801,18 @@ function abrirChamado() {
   const ramal = document.getElementById('nc-ramal').value.trim();
   if (!setorId||!areaId||!assunto||!descricao) { toast('Preencha todos os campos obrigatórios!','error'); return; }
   const agora = new Date().toISOString();
+  // Buscar nomes de setor e area para salvar no chamado
+  const _setores = (window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
+  const _areas   = (window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
+  const _setObj  = _setores.find(function(s){return s&&s.id===setorId;})||{};
+  const _areaObj = _areas.find(function(a){return a&&a.id===areaId;})||{};
   const chamado = {
     id: uid(),
     numero: proxNum(),
-    setorId, areaId, assunto, descricao, prioridade, ramal,
+    setorId, areaId,
+    setorNome: _setObj.nome||setorId,
+    areaNome: _areaObj.nome||areaId,
+    assunto, descricao, prioridade, ramal,
     status: 'Aberto',
     usuarioId: usuarioAtual.id,
     atendenteId: null, // auto-assign abaixo
