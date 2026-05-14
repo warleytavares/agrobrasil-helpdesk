@@ -3399,13 +3399,13 @@ function renderDashboard() {
   `).join('');
 
   const lista = isAdmin ? chamados : meusCh; // Usuário só vê os seus
-  const recentes = [...lista].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm)).slice(0,10);
+  const recentes = [...lista].sort((a,b)=>new Date(b.atualizadoEm||b.criadoEm)-new Date(a.atualizadoEm||a.criadoEm)).slice(0,10);
   document.getElementById('dash-tabela').innerHTML = recentes.length ? recentes.map(c=>`
     <tr onclick="abrirTicket('${c.id}')">
       <td><span class="ticket-num">${c.numero}</span></td>
       <td>${c.assunto}</td>
-      <td>${setorNome(c.setorId)}</td>
-      <td>${areaNome(c.areaId)}</td>
+      <td>${c.setorNome||setorNome(c.setorId)}</td>
+      <td>${c.areaNome||areaNome(c.areaId)}</td>
       <td>${badgePrio(c.prioridade)}</td>
       <td>${badgeStatus(c.status)}</td>
       <td>${usuarioNome(c.usuarioId)}</td>
@@ -3431,8 +3431,8 @@ function renderMeusChamados() {
     <tr onclick="abrirTicket('${c.id}')">
       <td><span class="ticket-num">${c.numero}</span></td>
       <td>${c.assunto}</td>
-      <td>${setorNome(c.setorId)}</td>
-      <td>${areaNome(c.areaId)}</td>
+      <td>${c.setorNome||setorNome(c.setorId)}</td>
+      <td>${c.areaNome||areaNome(c.areaId)}</td>
       <td>${badgePrio(c.prioridade)}</td>
       <td>${badgeStatus(c.status)}</td>
       <td>${fmtData(c.atualizadoEm||c.criadoEm)}</td>
@@ -3550,8 +3550,8 @@ function renderTodosChamados() {
     <tr onclick="abrirTicket('${c.id}')">
       <td><span class="ticket-num">${c.numero}</span></td>
       <td>${c.assunto}</td>
-      <td>${setorNome(c.setorId)}</td>
-      <td>${areaNome(c.areaId)}</td>
+      <td>${c.setorNome||setorNome(c.setorId)}</td>
+      <td>${c.areaNome||areaNome(c.areaId)}</td>
       <td>${badgePrio(c.prioridade)}</td>
       <td>${badgeStatus(c.status)}</td>
       <td>${usuarioNome(c.usuarioId)}</td>
@@ -3586,8 +3586,8 @@ function abrirTicket(id) {
     <div class="ticket-info-item"><div class="tit">Número</div><div class="val">${c.numero}</div></div>
     <div class="ticket-info-item"><div class="tit">Status</div><div class="val">${badgeStatus(c.status)}</div></div>
     <div class="ticket-info-item"><div class="tit">Prioridade</div><div class="val">${badgePrio(c.prioridade)}</div></div>
-    <div class="ticket-info-item"><div class="tit">Setor</div><div class="val">${setorNome(c.setorId)}</div></div>
-    <div class="ticket-info-item"><div class="tit">Área / Categoria</div><div class="val">${areaNome(c.areaId)}</div></div>
+    <div class="ticket-info-item"><div class="tit">Setor</div><div class="val">${c.setorNome||setorNome(c.setorId)}</div></div>
+    <div class="ticket-info-item"><div class="tit">Área / Categoria</div><div class="val">${c.areaNome||areaNome(c.areaId)}</div></div>
     <div class="ticket-info-item"><div class="tit">Solicitante</div><div class="val">${usuarioNome(c.usuarioId)}</div></div>
     <div class="ticket-info-item"><div class="tit">Atendente</div><div class="val">${c.atendenteId ? usuarioNome(c.atendenteId) : 'Não atribuído'}</div></div>
     <div class="ticket-info-item"><div class="tit">Aberto em</div><div class="val">${fmtData(c.criadoEm)}</div></div>
