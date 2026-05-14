@@ -1396,22 +1396,32 @@ const DB = {
   // Carrega dados do Firebase e chama callback quando pronto
   ghLoad: function(callback) {
     if(!window._fbCache) window._fbCache={};
-    var loaded={chamados:false,contador:false,usuarios:false,setores:false,areas:false};
-    function done(){ if(loaded.chamados&&loaded.contador&&loaded.usuarios&&callback) callback(); }
     var keys=['chamados','contador','usuarios','setores','areas'];
-    var loaded2={chamados:false,contador:false,usuarios:false,setores:false,areas:false};
-    function done2(){ if(Object.values(loaded2).every(Boolean)&&callback) callback(); }
+    var loaded={};
+    keys.forEach(function(k){ loaded[k]=false; });
+    function done(){
+      if(keys.every(function(k){ return loaded[k]; }) && callback) callback();
+    }
     keys.forEach(function(key){
-      fbDB.ref(key).once('value',function(s){
-        var v=s.val();
-        if(key==='contador') window._fbCache[key]=v||0;
-        else window._fbCache[key]=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
-        loaded2[key]=true; done2();
+      fbDB.ref(key).once('value',function(snap){
+        var v=snap.val();
+        if(key==='contador'){
+          window._fbCache[key]=v||0;
+        } else {
+          var arr=Array.isArray(v)?v.filter(Boolean):(v?Object.values(v).filter(Boolean):[]);
+          // fallback localStorage para setores e areas se Firebase vazio
+          if(arr.length===0 && (key==='setores'||key==='areas')){
+            arr=JSON.parse(localStorage.getItem('agro_hd_'+key)||'[]');
+            // migrar para Firebase
+            if(arr.length>0) fbDB.ref(key).set(arr);
+          }
+          window._fbCache[key]=arr;
+        }
+        loaded[key]=true;
+        done();
       });
     });
   },
-
-  // Escuta mudanças em tempo real nos chamados
   listenChamados: function(callback) {
     fbDB.ref('chamados').on('value', function(snap) {
       if(!window._fbCache) window._fbCache = {};
