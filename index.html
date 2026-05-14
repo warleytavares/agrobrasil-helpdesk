@@ -1496,6 +1496,15 @@ function renderSidebar() {
   var elSet=document.getElementById('nav-setores');
   if(elUsu) elUsu.style.display=soAdmin?'flex':'none';
   if(elSet) elSet.style.display=soAdmin?'flex':'none';
+  // Atualizar badges dos menus
+  var _ch=getChamados();
+  var _podeVerTodos2=usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+  var _meusCh=_podeVerTodos2?_ch:_ch.filter(function(c){return c&&(c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id);});
+  var _todosCh=_podeVerTodos2?_ch:[];
+  var bdMeus=document.querySelector('#nav-meus-chamados .badge');
+  var bdTodos=document.querySelector('#nav-todos-chamados .badge');
+  if(bdMeus) bdMeus.textContent=_meusCh.length||'';
+  if(bdTodos) bdTodos.textContent=_todosCh.length||'';
 }
 
 function fazerLogin() {
