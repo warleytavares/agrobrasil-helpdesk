@@ -1953,9 +1953,9 @@ function editarChamado(id) {
     var ch=chamados[ci];
     var setores=(window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
     var areas=(window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
-    var modal=document.getElementById('modal-editar-chamado');
-    if(!modal){modal=document.createElement('div');modal.id='modal-editar-chamado';document.body.appendChild(modal);}
-    modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    var _editModal=document.getElementById('modal-editar-chamado');
+    if(!_editModal){_editModal=document.createElement('div');_editModal.id='modal-editar-chamado';document.body.appendChild(_editModal);}
+    _editModal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;';
     var setOpts=setores.map(function(s){return '<option value="'+s.id+'"'+(s.id===ch.setorId?' selected':'')+'>'+s.nome+'</option>';}).join('');
     var areasSet=areas.filter(function(a){return a.setorId===ch.setorId;});
     var areaOpts=areasSet.map(function(a){return '<option value="'+a.id+'"'+(a.id===ch.areaId?' selected':'')+'>'+a.nome+'</option>';}).join('');
@@ -1964,7 +1964,7 @@ function editarChamado(id) {
     var sInput='width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box';
     var sLabel='font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px';
     var sRow='margin-bottom:16px';
-    modal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
+    _editModal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'+
       '<h3 style="font-size:18px;font-weight:700;color:#1a2540">Editar Chamado '+ch.numero+'</h3>'+
       '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">x</button></div>'+
