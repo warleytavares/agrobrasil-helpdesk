@@ -1550,8 +1550,6 @@ function fazerLogin() {
         if(typeof renderDashboard==='function') renderDashboard();
         if(typeof renderSidebar==='function') renderSidebar();
       });
-      renderSidebar();
-      renderDashboard();
       irPara('dashboard');
     });
   });
@@ -3402,7 +3400,7 @@ function renderDashboard() {
   `).join('');
 
   const lista = isAdmin ? chamados : meusCh; // Usuário só vê os seus
-  const recentes = [...lista].sort((a,b)=>new Date(b.atualizadoEm||b.criadoEm)-new Date(a.atualizadoEm||a.criadoEm)).slice(0,10);
+  const recentes = [...lista].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm)).slice(0,10);
   document.getElementById('dash-tabela').innerHTML = recentes.length ? recentes.map(c=>`
     <tr onclick="abrirTicket('${c.id}')">
       <td><span class="ticket-num">${c.numero}</span></td>
