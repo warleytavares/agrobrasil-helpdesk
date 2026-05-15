@@ -1604,9 +1604,7 @@ function sair() {
 function irPara(pagina) {
   // Recarregar dados do Firebase para páginas com chamados
   if(['dashboard','todos-chamados','meus-chamados'].includes(pagina)){
-    DB.ghLoad(function(){
-      _renderPagina(pagina);
-    });
+    _renderPagina(pagina);
     return;
   }
   _renderPagina(pagina);
@@ -2084,8 +2082,6 @@ function editSalvarChamado(id){
 }
 
 function abrirTicket(id) {
-  // Sempre recarregar dados frescos do Firebase antes de abrir ticket
-  DB.ghLoad(function(){
   const chamados = getChamados();
   const c = chamados.find(x=>x.id===id);
   if (!c) return;
@@ -2168,7 +2164,6 @@ function abrirTicket(id) {
     const ml = document.getElementById('msg-list');
     ml.scrollTop = ml.scrollHeight;
   }, 100);
-  }); // fim ghLoad
 }
 
 function alterarStatus(novoStatus) {
