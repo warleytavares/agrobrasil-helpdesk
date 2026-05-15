@@ -1967,7 +1967,7 @@ function editarChamado(id) {
     _editModal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'+
       '<h3 style="font-size:18px;font-weight:700;color:#1a2540">Editar Chamado '+ch.numero+'</h3>'+
-      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">x</button></div>'+
+      '<button onclick="document.getElementById(\'modal-editar-chamado\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">x</button></div>'+
       '<div style="'+sRow+'"><label style="'+sLabel+'">Assunto</label>'+
       '<input id="edit-assunto" type="text" value="'+ch.assunto.replace(/"/g,'&quot;')+'" style="'+sInput+'"></div>'+
       '<div style="'+sRow+'"><label style="'+sLabel+'">Setor Destinatario</label>'+
@@ -1977,7 +1977,7 @@ function editarChamado(id) {
       '<div style="'+sRow+'"><label style="'+sLabel+'">Prioridade</label>'+
       '<select id="edit-prioridade" style="'+sInput+'">'+prioOpts+'</select></div>'+
       '<div style="display:flex;gap:12px;margin-top:8px">'+
-      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="flex:1;padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'+
+      '<button onclick="document.getElementById(\'modal-editar-chamado\').remove()" style="flex:1;padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'+
       '<button onclick="editSalvarChamado(''+id+'')" style="flex:1;padding:12px;border:none;border-radius:8px;background:#2d7a4f;color:white;cursor:pointer;font-size:14px;font-weight:600">Salvar</button>'+
       '</div></div>';
   });
