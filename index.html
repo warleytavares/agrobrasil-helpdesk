@@ -1571,10 +1571,16 @@ function fazerLogin() {
       usuarioAtual = u;
       document.getElementById('tela-login').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
-      DB.listenChamados(function(){ if(typeof renderDashboard==='function') renderDashboard(); });
-      renderSidebar();
-      renderDashboard();
-      irPara('dashboard');
+      DB.listenChamados(function(){
+        if(!window._loginFeito2){
+          window._loginFeito2=true;
+          renderSidebar();
+          irPara('dashboard');
+        } else {
+          if(typeof renderDashboard==='function') renderDashboard();
+          renderSidebar();
+        }
+      });
     });
   });
 }
@@ -1582,6 +1588,7 @@ function fazerLogin() {
 function sair() {
   usuarioAtual = null;
   window._loginFeito=false;
+  window._loginFeito2=false;
   document.getElementById('tela-login').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-email').value = '';
@@ -1791,7 +1798,9 @@ function renderMeusChamados() {
   const busca = (document.getElementById('filtro-meus')||{value:''}).value.toLowerCase();
   const status = (document.getElementById('filtro-meus-status')||{value:''}).value;
   const chamados = getChamados().filter(c => {
-    var ok=c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id||usuarioAtual.perfil==='admin'||isAtendente(usuarioAtual); if(!ok) return false;
+    var _podeVerTodosMeus=usuarioAtual.perfil==='admin'||usuarioAtual.perfil==='atendente';
+    var ok=_podeVerTodosMeus||c.usuarioId===usuarioAtual.id||c.atendenteId===usuarioAtual.id;
+    if(!ok) return false;
     if (status && c.status !== status) return false;
     if (busca && !c.assunto.toLowerCase().includes(busca) && !c.numero.includes(busca)) return false;
     return true;
