@@ -1547,10 +1547,14 @@ function fazerLogin() {
       document.getElementById('tela-login').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
       DB.listenChamados(function(){
-        if(typeof renderDashboard==='function') renderDashboard();
+        if(!window._primeiroLogin){
+          window._primeiroLogin=true;
+          irPara('dashboard');
+        } else {
+          if(typeof renderDashboard==='function') renderDashboard();
+        }
         if(typeof renderSidebar==='function') renderSidebar();
       });
-      irPara('dashboard');
     });
   });
 }
