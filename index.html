@@ -1941,6 +1941,79 @@ function renderTodosChamados() {
 }
 
 // ===================== TICKET DETALHE =====================
+function editarChamado(id) {
+  DB.ghLoad(function(){
+    var chamados=getChamados();
+    var ci=chamados.findIndex(function(x){return x&&x.id===id;});
+    if(ci<0) return;
+    var ch=chamados[ci];
+    var setores=(window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
+    var areas=(window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
+    var modal=document.getElementById('modal-editar-chamado');
+    if(!modal){modal=document.createElement('div');modal.id='modal-editar-chamado';document.body.appendChild(modal);}
+    modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    var setOpts=setores.map(function(s){return '<option value="'+s.id+'"'+(s.id===ch.setorId?' selected':'')+'>'+s.nome+'</option>';}).join('');
+    var areasSet=areas.filter(function(a){return a.setorId===ch.setorId;});
+    var areaOpts=areasSet.map(function(a){return '<option value="'+a.id+'"'+(a.id===ch.areaId?' selected':'')+'>'+a.nome+'</option>';}).join('');
+    var prios=['Baixa','Média','Alta','Urgente','Crítica'];
+    var prioOpts=prios.map(function(p){return '<option value="'+p+'"'+(p===ch.prioridade?' selected':'')+'>'+p+'</option>';}).join('');
+    var btnStyle='flex:1;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600';
+    modal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'+
+      '<h3 style="font-size:18px;font-weight:700;color:#1a2540">✏️ Editar Chamado '+ch.numero+'</h3>'+
+      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">✕</button></div>'+
+      '<div style="display:flex;flex-direction:column;gap:16px">'+
+      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Assunto</label>'+
+      '<input id="edit-assunto" type="text" value="'+ch.assunto.replace(/"/g,'&quot;')+'" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
+      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Setor Destinatário</label>'+
+      '<select id="edit-setor" onchange="editAtualizarAreas(this.value)" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px"><option value="">Selecione...</option>'+setOpts+'</select></div>'+
+      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Área / Categoria</label>'+
+      '<select id="edit-area" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px"><option value="">Selecione...</option>'+areaOpts+'</select></div>'+
+      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Prioridade</label>'+
+      '<select id="edit-prioridade" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px">'+prioOpts+'</select></div>'+
+      '<div style="display:flex;gap:12px;margin-top:8px">'+
+      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="'+btnStyle+';border:1.5px solid #ddd;background:white">Cancelar</button>'+
+      '<button onclick="editSalvarChamado(''+id+'')" style="'+btnStyle+';border:none;background:#2d7a4f;color:white">💾 Salvar</button>'+
+      '</div></div></div>';
+  });
+}
+
+function editAtualizarAreas(setorId){
+  var areas=(window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
+  var sel=document.getElementById('edit-area');
+  if(!sel) return;
+  var f=areas.filter(function(a){return a.setorId===setorId;});
+  sel.innerHTML='<option value="">Selecione...</option>'+f.map(function(a){return '<option value="'+a.id+'">'+a.nome+'</option>';}).join('');
+}
+
+function editSalvarChamado(id){
+  var setorId=document.getElementById('edit-setor').value;
+  var areaId=document.getElementById('edit-area').value;
+  var prioridade=document.getElementById('edit-prioridade').value;
+  var assunto=(document.getElementById('edit-assunto').value||'').trim();
+  if(!assunto){toast('Assunto não pode ficar vazio.','error');return;}
+  var setores=(window._fbCache&&window._fbCache.setores)||[];
+  var areas=(window._fbCache&&window._fbCache.areas)||[];
+  var setObj=setores.find(function(s){return s&&s.id===setorId;})||{};
+  var areaObj=areas.find(function(a){return a&&a.id===areaId;})||{};
+  window._fbCache=null;
+  DB.ghLoad(function(){
+    var chamados=getChamados();
+    var idx2=chamados.findIndex(function(c){return c&&c.id===id;});
+    if(idx2<0){toast('Chamado não encontrado.','error');return;}
+    if(setorId){chamados[idx2].setorId=setorId;chamados[idx2].setorNome=setObj.nome||setorId;}
+    if(areaId){chamados[idx2].areaId=areaId;chamados[idx2].areaNome=areaObj.nome||areaId;}
+    if(prioridade) chamados[idx2].prioridade=prioridade;
+    chamados[idx2].assunto=assunto;
+    chamados[idx2].atualizadoEm=new Date().toISOString();
+    DB.set('chamados',chamados);
+    var m=document.getElementById('modal-editar-chamado');
+    if(m) m.remove();
+    toast('Chamado atualizado com sucesso!','success');
+    setTimeout(function(){abrirTicket(id);},600);
+  });
+}
+
 function abrirTicket(id) {
   // Sempre recarregar dados frescos do Firebase antes de abrir ticket
   DB.ghLoad(function(){
