@@ -1953,33 +1953,97 @@ function editarChamado(id) {
     var ch=chamados[ci];
     var setores=(window._fbCache&&window._fbCache.setores)||JSON.parse(localStorage.getItem('agro_hd_setores')||'[]');
     var areas=(window._fbCache&&window._fbCache.areas)||JSON.parse(localStorage.getItem('agro_hd_areas')||'[]');
-    var _editModal=document.getElementById('modal-editar-chamado');
-    if(!_editModal){_editModal=document.createElement('div');_editModal.id='modal-editar-chamado';document.body.appendChild(_editModal);}
-    _editModal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;';
-    var setOpts=setores.map(function(s){return '<option value="'+s.id+'"'+(s.id===ch.setorId?' selected':'')+'>'+s.nome+'</option>';}).join('');
-    var areasSet=areas.filter(function(a){return a.setorId===ch.setorId;});
-    var areaOpts=areasSet.map(function(a){return '<option value="'+a.id+'"'+(a.id===ch.areaId?' selected':'')+'>'+a.nome+'</option>';}).join('');
-    var prios=['Baixa','Media','Alta','Urgente','Critica'];
-    var prioOpts=prios.map(function(p){return '<option value="'+p+'"'+(p===ch.prioridade?' selected':'')+'>'+p+'</option>';}).join('');
-    var sInput='width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box';
-    var sLabel='font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px';
-    var sRow='margin-bottom:16px';
-    _editModal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'+
-      '<h3 style="font-size:18px;font-weight:700;color:#1a2540">Editar Chamado '+ch.numero+'</h3>'+
-      '<button onclick="document.getElementById(\'modal-editar-chamado\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">x</button></div>'+
-      '<div style="'+sRow+'"><label style="'+sLabel+'">Assunto</label>'+
-      '<input id="edit-assunto" type="text" value="'+ch.assunto.replace(/"/g,'&quot;')+'" style="'+sInput+'"></div>'+
-      '<div style="'+sRow+'"><label style="'+sLabel+'">Setor Destinatario</label>'+
-      '<select id="edit-setor" onchange="editAtualizarAreas(this.value)" style="'+sInput+'"><option value="">Selecione...</option>'+setOpts+'</select></div>'+
-      '<div style="'+sRow+'"><label style="'+sLabel+'">Area / Categoria</label>'+
-      '<select id="edit-area" style="'+sInput+'"><option value="">Selecione...</option>'+areaOpts+'</select></div>'+
-      '<div style="'+sRow+'"><label style="'+sLabel+'">Prioridade</label>'+
-      '<select id="edit-prioridade" style="'+sInput+'">'+prioOpts+'</select></div>'+
-      '<div style="display:flex;gap:12px;margin-top:8px">'+
-      '<button onclick="document.getElementById(\'modal-editar-chamado\').remove()" style="flex:1;padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'+
-      '<button onclick="editSalvarChamado(''+id+'')" style="flex:1;padding:12px;border:none;border-radius:8px;background:#2d7a4f;color:white;cursor:pointer;font-size:14px;font-weight:600">Salvar</button>'+
-      '</div></div>';
+
+    // Remover modal anterior se existir
+    var old=document.getElementById('modal-editar-chamado');
+    if(old) old.remove();
+
+    // Criar elementos via DOM (sem strings com onclick problemáticos)
+    var overlay=document.createElement('div');
+    overlay.id='modal-editar-chamado';
+    overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;';
+
+    var box=document.createElement('div');
+    box.style.cssText='background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)';
+
+    // Título
+    var titulo=document.createElement('div');
+    titulo.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:24px';
+    var h3=document.createElement('h3');
+    h3.style.cssText='font-size:18px;font-weight:700;color:#1a2540';
+    h3.textContent='Editar Chamado '+ch.numero;
+    var btnFechar=document.createElement('button');
+    btnFechar.style.cssText='background:none;border:none;font-size:22px;cursor:pointer;color:#666';
+    btnFechar.textContent='x';
+    btnFechar.onclick=function(){overlay.remove();};
+    titulo.appendChild(h3); titulo.appendChild(btnFechar);
+
+    var sInput='width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;margin-top:6px';
+    var sLabel='font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block';
+
+    function criarCampo(labelTxt, id2, tipo){
+      var div=document.createElement('div'); div.style.marginBottom='16px';
+      var lbl=document.createElement('label'); lbl.style.cssText=sLabel; lbl.textContent=labelTxt;
+      var inp=document.createElement(tipo||'input');
+      inp.id=id2; inp.style.cssText=sInput;
+      if(tipo!=='select') inp.type='text';
+      div.appendChild(lbl); div.appendChild(inp);
+      return div;
+    }
+
+    // Assunto
+    var fAssunto=criarCampo('Assunto','edit-assunto');
+    fAssunto.querySelector('#edit-assunto').value=ch.assunto||'';
+
+    // Setor
+    var fSetor=criarCampo('Setor Destinatario','edit-setor','select');
+    var selSetor=fSetor.querySelector('#edit-setor');
+    var optVazio=document.createElement('option'); optVazio.value=''; optVazio.textContent='Selecione...';
+    selSetor.appendChild(optVazio);
+    setores.forEach(function(s){
+      var o=document.createElement('option'); o.value=s.id; o.textContent=s.nome;
+      if(s.id===ch.setorId) o.selected=true;
+      selSetor.appendChild(o);
+    });
+    selSetor.onchange=function(){ editAtualizarAreas(this.value); };
+
+    // Area
+    var fArea=criarCampo('Area / Categoria','edit-area','select');
+    var selArea=fArea.querySelector('#edit-area');
+    var optV2=document.createElement('option'); optV2.value=''; optV2.textContent='Selecione...';
+    selArea.appendChild(optV2);
+    areas.filter(function(a){return a.setorId===ch.setorId;}).forEach(function(a){
+      var o=document.createElement('option'); o.value=a.id; o.textContent=a.nome;
+      if(a.id===ch.areaId) o.selected=true;
+      selArea.appendChild(o);
+    });
+
+    // Prioridade
+    var fPrio=criarCampo('Prioridade','edit-prioridade','select');
+    var selPrio=fPrio.querySelector('#edit-prioridade');
+    ['Baixa','Media','Alta','Urgente','Critica'].forEach(function(p){
+      var o=document.createElement('option'); o.value=p; o.textContent=p;
+      if(p===ch.prioridade) o.selected=true;
+      selPrio.appendChild(o);
+    });
+
+    // Botoes
+    var divBtns=document.createElement('div');
+    divBtns.style.cssText='display:flex;gap:12px;margin-top:16px';
+    var btnCancelar=document.createElement('button');
+    btnCancelar.style.cssText='flex:1;padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;font-weight:600';
+    btnCancelar.textContent='Cancelar';
+    btnCancelar.onclick=function(){overlay.remove();};
+    var btnSalvar=document.createElement('button');
+    btnSalvar.style.cssText='flex:1;padding:12px;border:none;border-radius:8px;background:#2d7a4f;color:white;cursor:pointer;font-size:14px;font-weight:600';
+    btnSalvar.textContent='Salvar';
+    btnSalvar.onclick=function(){editSalvarChamado(id);};
+    divBtns.appendChild(btnCancelar); divBtns.appendChild(btnSalvar);
+
+    box.appendChild(titulo); box.appendChild(fAssunto); box.appendChild(fSetor);
+    box.appendChild(fArea); box.appendChild(fPrio); box.appendChild(divBtns);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
   });
 }
 
