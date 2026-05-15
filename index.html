@@ -1543,6 +1543,7 @@ function renderSidebar() {
   if(bdT) bdT.textContent=pVT&&ch.length>0?ch.length:'';
 }
 function fazerLogin() {
+  window._loginFeito2=false;
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
   if(!email || !senha){
