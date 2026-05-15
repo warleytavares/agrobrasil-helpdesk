@@ -1959,26 +1959,27 @@ function editarChamado(id) {
     var setOpts=setores.map(function(s){return '<option value="'+s.id+'"'+(s.id===ch.setorId?' selected':'')+'>'+s.nome+'</option>';}).join('');
     var areasSet=areas.filter(function(a){return a.setorId===ch.setorId;});
     var areaOpts=areasSet.map(function(a){return '<option value="'+a.id+'"'+(a.id===ch.areaId?' selected':'')+'>'+a.nome+'</option>';}).join('');
-    var prios=['Baixa','Média','Alta','Urgente','Crítica'];
+    var prios=['Baixa','Media','Alta','Urgente','Critica'];
     var prioOpts=prios.map(function(p){return '<option value="'+p+'"'+(p===ch.prioridade?' selected':'')+'>'+p+'</option>';}).join('');
-    var btnStyle='flex:1;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600';
+    var sInput='width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box';
+    var sLabel='font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px';
+    var sRow='margin-bottom:16px';
     modal.innerHTML='<div style="background:white;border-radius:12px;padding:32px;width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'+
-      '<h3 style="font-size:18px;font-weight:700;color:#1a2540">✏️ Editar Chamado '+ch.numero+'</h3>'+
-      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">✕</button></div>'+
-      '<div style="display:flex;flex-direction:column;gap:16px">'+
-      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Assunto</label>'+
-      '<input id="edit-assunto" type="text" value="'+ch.assunto.replace(/"/g,'&quot;')+'" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box"></div>'+
-      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Setor Destinatário</label>'+
-      '<select id="edit-setor" onchange="editAtualizarAreas(this.value)" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px"><option value="">Selecione...</option>'+setOpts+'</select></div>'+
-      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Área / Categoria</label>'+
-      '<select id="edit-area" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px"><option value="">Selecione...</option>'+areaOpts+'</select></div>'+
-      '<div><label style="font-size:12px;font-weight:600;color:#666;text-transform:uppercase;display:block;margin-bottom:6px">Prioridade</label>'+
-      '<select id="edit-prioridade" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px">'+prioOpts+'</select></div>'+
+      '<h3 style="font-size:18px;font-weight:700;color:#1a2540">Editar Chamado '+ch.numero+'</h3>'+
+      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#666">x</button></div>'+
+      '<div style="'+sRow+'"><label style="'+sLabel+'">Assunto</label>'+
+      '<input id="edit-assunto" type="text" value="'+ch.assunto.replace(/"/g,'&quot;')+'" style="'+sInput+'"></div>'+
+      '<div style="'+sRow+'"><label style="'+sLabel+'">Setor Destinatario</label>'+
+      '<select id="edit-setor" onchange="editAtualizarAreas(this.value)" style="'+sInput+'"><option value="">Selecione...</option>'+setOpts+'</select></div>'+
+      '<div style="'+sRow+'"><label style="'+sLabel+'">Area / Categoria</label>'+
+      '<select id="edit-area" style="'+sInput+'"><option value="">Selecione...</option>'+areaOpts+'</select></div>'+
+      '<div style="'+sRow+'"><label style="'+sLabel+'">Prioridade</label>'+
+      '<select id="edit-prioridade" style="'+sInput+'">'+prioOpts+'</select></div>'+
       '<div style="display:flex;gap:12px;margin-top:8px">'+
-      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="'+btnStyle+';border:1.5px solid #ddd;background:white">Cancelar</button>'+
-      '<button onclick="editSalvarChamado(''+id+'')" style="'+btnStyle+';border:none;background:#2d7a4f;color:white">💾 Salvar</button>'+
-      '</div></div></div>';
+      '<button onclick="document.getElementById('modal-editar-chamado').remove()" style="flex:1;padding:12px;border:1.5px solid #ddd;border-radius:8px;background:white;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'+
+      '<button onclick="editSalvarChamado(''+id+'')" style="flex:1;padding:12px;border:none;border-radius:8px;background:#2d7a4f;color:white;cursor:pointer;font-size:14px;font-weight:600">Salvar</button>'+
+      '</div></div>';
   });
 }
 
